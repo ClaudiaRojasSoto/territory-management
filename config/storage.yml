@@ -1,0 +1,54 @@
+# Use Amazon S3 to store uploaded files (see config/storage.yml for options).
+#
+# Store uploaded files on the local file system (see config/storage.yml for options).
+local:
+  service: Disk
+  root: <%= Rails.root.join("storage") %>
+
+# Use Amazon S3 to store uploaded files.
+#
+# amazon:
+#   service: S3
+#   access_key_id: <%= ENV['AWS_ACCESS_KEY_ID'] %>
+#   secret_access_key: <%= ENV['AWS_SECRET_ACCESS_KEY'] %>
+#   region: <%= ENV['AWS_REGION'] %>
+#   bucket: <%= ENV['AWS_BUCKET'] %>
+
+# Use Google Cloud Storage to store uploaded files.
+#
+# google:
+#   service: GCS
+#   project: <%= ENV['GCS_PROJECT'] %>
+#   credentials: <%= ENV['GCS_CREDENTIALS'] %>
+#   bucket: <%= ENV['GCS_BUCKET'] %>
+
+# Use Microsoft Azure Storage to store uploaded files.
+#
+# azure:
+#   service: AzureStorage
+#   storage_account_name: <%= ENV['AZURE_STORAGE_ACCOUNT_NAME'] %>
+#   storage_access_key: <%= ENV['AZURE_STORAGE_ACCESS_KEY'] %>
+#   container: <%= ENV['AZURE_STORAGE_CONTAINER'] %>
+
+# Use Cloudinary to store uploaded files.
+#
+# cloudinary:
+#   service: Cloudinary
+#   cloud_name: <%= ENV['CLOUDINARY_CLOUD_NAME'] %>
+#   api_key: <%= ENV['CLOUDINARY_API_KEY'] %>
+#   api_secret: <%= ENV['CLOUDINARY_API_SECRET'] %>
+
+# Use Rackspace Cloud Files to store uploaded files.
+#
+# rackspace:
+#   service: Rackspace
+#   username: <%= ENV['RACKSPACE_USERNAME'] %>
+#   api_key: <%= ENV['RACKSPACE_API_KEY'] %>
+#   container: <%= ENV['RACKSPACE_CONTAINER'] %>
+
+# Use a CDN to store uploaded files.
+#
+# cdn:
+#   service: CDN
+#   url: <%= ENV['CDN_URL'] %>
+#   public_url: <%= ENV['CDN_PUBLIC_URL'] %>

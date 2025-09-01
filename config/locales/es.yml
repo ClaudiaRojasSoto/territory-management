@@ -1,0 +1,64 @@
+es:
+  hello: "Hola mundo"
+  territories:
+    index:
+      title: "Territorios"
+      new: "Nuevo Territorio"
+      filters:
+        all: "Todos los estados"
+        available: "Disponible"
+        assigned: "Asignado"
+        completed: "Completado"
+        returned: "Devuelto"
+    new:
+      title: "Crear Nuevo Territorio"
+      name: "Nombre del Territorio"
+      description: "Descripción"
+      draw_map: "Dibuja el territorio en el mapa"
+      save: "Guardar"
+      cancel: "Cancelar"
+    show:
+      title: "Territorio"
+      status: "Estado"
+      area: "Área"
+      assigned_to: "Asignado a"
+      not_assigned: "No asignado"
+      actions:
+        edit: "Editar"
+        delete: "Eliminar"
+        assign: "Asignar"
+        return: "Devolver"
+        complete: "Completar"
+    edit:
+      title: "Editar Territorio"
+      update: "Actualizar"
+    form:
+      name_placeholder: "Ingresa el nombre del territorio"
+      description_placeholder: "Describe el territorio"
+    messages:
+      created: "Territorio creado exitosamente"
+      updated: "Territorio actualizado exitosamente"
+      deleted: "Territorio eliminado exitosamente"
+      assigned: "Territorio asignado exitosamente"
+      returned: "Territorio devuelto exitosamente"
+      completed: "Territorio marcado como completado"
+    errors:
+      draw_territory: "Por favor dibuja un territorio en el mapa"
+      name_required: "El nombre es requerido"
+      boundaries_required: "Los límites del territorio son requeridos"
+  common:
+    actions:
+      save: "Guardar"
+      cancel: "Cancelar"
+      edit: "Editar"
+      delete: "Eliminar"
+      back: "Volver"
+      new: "Nuevo"
+    status:
+      available: "Disponible"
+      assigned: "Asignado"
+      completed: "Completado"
+      returned: "Devuelto"
+    units:
+      acres: "acres"
+      sq_meters: "metros cuadrados" 

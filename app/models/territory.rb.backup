@@ -1,0 +1,3 @@
+class Territory < ApplicationRecord
+  belongs_to :assigned_to
+end
