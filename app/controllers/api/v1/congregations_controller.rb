@@ -39,13 +39,14 @@ class Api::V1::CongregationsController < ApplicationController
   end
 
   def congregation_params
-    # Aceptar parámetros tanto en raíz como envueltos en :congregation
     raw = params[:congregation].present? ? params[:congregation] : params
     raw = raw.respond_to?(:to_unsafe_h) ? raw.to_unsafe_h : raw
 
     attributes = {}
-    attributes[:name] = raw['name'] || raw[:name]
-    attributes[:description] = raw['description'] || raw[:description]
+    name = raw['name'] || raw[:name]
+    description = raw['description'] || raw[:description]
+    attributes[:name] = name if name.present?
+    attributes[:description] = description if description.present?
 
     if raw['boundaries'].present? || raw[:boundaries].present?
       geojson = raw['boundaries'] || raw[:boundaries]

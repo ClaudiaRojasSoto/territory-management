@@ -60,7 +60,6 @@ class Api::V1::TerritoriesController < ApplicationController
   end
 
   def territory_params
-    # Convertir los parámetros de GeoJSON a formato PostGIS, aceptando tanto raíz como :territory
     raw = params[:territory].present? ? params[:territory] : params
     raw = raw.respond_to?(:to_unsafe_h) ? raw.to_unsafe_h : raw
     attributes = {}
@@ -72,10 +71,8 @@ class Api::V1::TerritoriesController < ApplicationController
     attributes[:number] = raw['number'] || raw[:number]
     
     if raw['boundaries'].present? || raw[:boundaries].present?
-      # Convertir GeoJSON a WKT para PostGIS
       geojson = raw['boundaries'] || raw[:boundaries]
       if geojson[:type] == 'Polygon' && geojson[:coordinates].present?
-        # Crear WKT string
         coords = geojson[:coordinates][0].map { |coord| "#{coord[0]} #{coord[1]}" }.join(', ')
         attributes[:boundaries] = "POLYGON((#{coords}))"
       end

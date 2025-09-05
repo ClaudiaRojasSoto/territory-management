@@ -156,6 +156,7 @@
   
   // Load congregations and territories on initialization
   map.whenReady(function() {
+    window.mainLayerGroup = L.layerGroup().addTo(map);
     loadCongregations();
   });
   
@@ -179,6 +180,9 @@
         });
         select.addEventListener('change', function() {
           currentCongregationId = this.value || null;
+          // Clear demarcation and previous main polygon when switching congregations
+          clearDemarcation();
+          if (window.mainLayerGroup) { window.mainLayerGroup.clearLayers(); }
           loadTerritories();
           loadMainCongregationPolygon();
         });
@@ -203,15 +207,12 @@
     fetch(`/api/v1/congregations/${currentCongregationId}`)
       .then(r => r.json())
       .then(feature => {
-        // Remove previous layer
-        if (window.mainTerritoryLayer) {
-          map.removeLayer(window.mainTerritoryLayer);
-          window.mainTerritoryLayer = null;
-        }
+        // Remove previous layers
+        if (window.mainLayerGroup) { window.mainLayerGroup.clearLayers(); }
         if (!feature || !feature.geometry) { return; }
         window.mainTerritoryLayer = L.geoJSON(feature, {
           style: { color: '#ffc107', fillColor: '#ffc107', fillOpacity: 0.2, weight: 4 }
-        }).addTo(map);
+        }).addTo(window.mainLayerGroup);
         if (feature.properties && feature.properties.center) {
           map.setView([feature.properties.center.lat, feature.properties.center.lng], 15);
         }
@@ -316,9 +317,16 @@
   
   // Save new territory
   document.getElementById('save-territory').addEventListener('click', function() {
-    const name = document.getElementById('territory-name').value;
+    const nameInput = document.getElementById('territory-name');
+    const name = (nameInput.value || '').trim();
     const description = document.getElementById('territory-description').value;
     const number = prompt('Number for this territory (optional):');
+    
+    if (!name) {
+      alert('Please enter a territory name');
+      nameInput.focus();
+      return;
+    }
     
     if (drawnItems.getLayers().length === 0) {
       alert('Please draw a territory on the map');
@@ -341,7 +349,7 @@
       alert('Select a congregation first');
       return;
     }
-
+  
     const territoryData = {
       name: name,
       description: description,
@@ -365,9 +373,18 @@
       },
       body: JSON.stringify(territoryData)
     })
-    .then(response => response.json())
+    .then(async (response) => {
+      const body = await response.json().catch(() => null);
+      if (!response.ok) {
+        const msg = body && body.errors ? body.errors.join(', ') : `HTTP ${response.status}`;
+        throw new Error(msg);
+      }
+      return body;
+    })
     .then(data => {
-      if (data.id) {
+      // API returns GeoJSON Feature
+      const createdId = data && data.properties && data.properties.id;
+      if (createdId) {
         alert('Territory created successfully');
         
         // Clear modal
@@ -385,7 +402,7 @@
         loadTerritories();
       }
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => alert(`Error creating territory: ${error.message}`));
   });
   
   // Function to draw general territory
