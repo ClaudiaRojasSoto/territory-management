@@ -4,6 +4,9 @@
       <div class="sidebar-content">
         <h2>Territories</h2>
         <div class="filters mb-3">
+          <label class="form-label">Congregation</label>
+          <select class="form-select mb-2" id="congregation-filter"></select>
+          <label class="form-label">Status</label>
           <select class="form-select" id="status-filter">
             <option value="">All statuses</option>
             <option value="available">Available</option>
@@ -18,7 +21,7 @@
         </div>
         
         <div class="mt-3">
-          <button class="btn btn-warning mb-2" onclick="demarcateMainTerritory()" style="width: 100%;">
+          <button class="btn btn-warning mb-2" onclick="demarcateMainTerritory()" style="width: 100%;" id="demarcate-main-btn">
             🗺️ Demarcate Main Congregation Zone
           </button>
           
@@ -151,20 +154,70 @@
     });
   });
   
-  // Load territories on initialization
+  // Load congregations and territories on initialization
   map.whenReady(function() {
-    loadTerritories();
+    loadCongregations();
   });
   
+  let currentCongregationId = null;
+
+  function loadCongregations() {
+    fetch('/api/v1/congregations')
+      .then(response => response.json())
+      .then(data => {
+        const select = document.getElementById('congregation-filter');
+        select.innerHTML = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = 'Select congregation';
+        select.appendChild(placeholder);
+        data.forEach(feature => {
+          const opt = document.createElement('option');
+          opt.value = feature.properties.id;
+          opt.textContent = feature.properties.name;
+          select.appendChild(opt);
+        });
+        select.addEventListener('change', function() {
+          currentCongregationId = this.value || null;
+          loadTerritories();
+          loadMainCongregationPolygon();
+        });
+      });
+  }
+
   // Function to load territories
   function loadTerritories() {
-    fetch('/api/v1/territories')
+    const url = currentCongregationId ? `/api/v1/territories?congregation_id=${currentCongregationId}` : '/api/v1/territories';
+    fetch(url)
       .then(response => response.json())
       .then(data => {
         displayTerritories(data);
         updateTerritoriesList(data);
       })
       .catch(error => console.error('Error:', error));
+  }
+
+  // Load and render the main congregation polygon
+  function loadMainCongregationPolygon() {
+    if (!currentCongregationId) { return; }
+    fetch(`/api/v1/congregations/${currentCongregationId}`)
+      .then(r => r.json())
+      .then(feature => {
+        // Remove previous layer
+        if (window.mainTerritoryLayer) {
+          map.removeLayer(window.mainTerritoryLayer);
+          window.mainTerritoryLayer = null;
+        }
+        if (!feature || !feature.geometry) { return; }
+        window.mainTerritoryLayer = L.geoJSON(feature, {
+          style: { color: '#ffc107', fillColor: '#ffc107', fillOpacity: 0.2, weight: 4 }
+        }).addTo(map);
+        if (feature.properties && feature.properties.center) {
+          map.setView([feature.properties.center.lat, feature.properties.center.lng], 15);
+        }
+        document.getElementById('main-territory-controls').style.display = 'block';
+      })
+      .catch(err => console.error('Error loading congregation polygon:', err));
   }
   
   // Function to display territories on map
@@ -177,8 +230,7 @@
     });
     
     territories.forEach(territory => {
-      const geojson = territory.to_geojson;
-      const layer = L.geoJSON(geojson, {
+      const layer = L.geoJSON(territory, {
         style: function(feature) {
           const status = feature.properties.status;
           let color = '#6c757d'; // default
@@ -211,7 +263,7 @@
           
           // Popup on click
           layer.bindPopup(`
-            <h6>${properties.name}</h6>
+            <h6>${properties.number ? `#${properties.number} - ` : ''}${properties.name}</h6>
             <p><strong>Status:</strong> ${properties.status}</p>
             <p><strong>Area:</strong> ${properties.area} acres</p>
             <p><strong>Assigned to:</strong> ${properties.assigned_to || 'Not assigned'}</p>
@@ -233,12 +285,12 @@
       const item = document.createElement('div');
       item.className = 'territory-item p-2 border-bottom';
       item.innerHTML = `
-        <h6>${territory.name}</h6>
-        <small class="text-muted">${territory.status}</small>
+        <h6>${territory.properties.number ? `#${territory.properties.number} - ` : ''}${territory.properties.name}</h6>
+        <small class="text-muted">${territory.properties.status}</small>
         <br>
-        <small>${territory.area} acres</small>
+        <small>${territory.properties.area} acres</small>
         <div class="mt-2">
-          <button class="btn btn-sm btn-outline-primary" onclick="printTerritory(${territory.id}, '${territory.name}')">
+          <button class="btn btn-sm btn-outline-primary" onclick="printTerritory(${territory.properties.id}, '${territory.properties.name}')">
             Print
           </button>
         </div>
@@ -246,7 +298,7 @@
       
       item.addEventListener('click', () => {
         // Center map on territory
-        const center = territory.center;
+        const center = territory.properties.center;
         if (center && center.lat && center.lng) {
           map.setView([center.lat, center.lng], 15);
         }
@@ -266,6 +318,7 @@
   document.getElementById('save-territory').addEventListener('click', function() {
     const name = document.getElementById('territory-name').value;
     const description = document.getElementById('territory-description').value;
+    const number = prompt('Number for this territory (optional):');
     
     if (drawnItems.getLayers().length === 0) {
       alert('Please draw a territory on the map');
@@ -284,9 +337,16 @@
     centerLat /= coordinates.length;
     centerLng /= coordinates.length;
     
+    if (!currentCongregationId) {
+      alert('Select a congregation first');
+      return;
+    }
+
     const territoryData = {
       name: name,
       description: description,
+      number: number ? parseInt(number, 10) : null,
+      congregation_id: currentCongregationId,
       boundaries: {
         type: 'Polygon',
         coordinates: [coordinates]
@@ -513,7 +573,7 @@
          // Click event to mark points
      map.off('click.demarcation');
      map.on('click.demarcation', function(e) {
-       console.log('Click detected in demarcation mode');
+       
        
                 // Prevent event propagation
        e.originalEvent.preventDefault();
@@ -539,7 +599,6 @@
          }).addTo(map);
        }
        
-       console.log('Point marked:', latlng, 'Total points:', window.demarcationPoints.length);
        
        // Update counter in button
        if (window.manualCloseDiv) {
@@ -551,7 +610,7 @@
      const mapContainer = map.getContainer();
      window.demarcationClickHandler = function(e) {
        if (window.demarcationMode) {
-         console.log('DOM click detected in demarcation mode');
+         
          
          // Prevent default behavior
          e.preventDefault();
@@ -582,7 +641,6 @@
              }).addTo(map);
            }
            
-           console.log('Point marked (DOM):', latlng, 'Total points:', window.demarcationPoints.length);
            
            // Update counter in button
            if (window.manualCloseDiv) {
@@ -626,7 +684,7 @@
   
   // Función para cerrar manualmente el polígono
   function manualClosePolygon() {
-    console.log('Cerrando polígono manualmente');
+    
     if (window.demarcationPoints.length >= 3) {
       // Cerrar el polígono
       window.demarcationPoints.push(window.demarcationPoints[0]);
@@ -694,7 +752,7 @@
         window.demarcationClickHandler = null;
       }
       
-      console.log('✅ Polygon closed successfully');
+      
     } else {
       alert('❌ You need at least 3 points to close the polygon');
     }
@@ -823,7 +881,84 @@
      // Show main territory controls
      document.getElementById('main-territory-controls').style.display = 'block';
      
-     alert('✅ Main zone demarcated successfully. Now you can create smaller territories within it.');
+     // Persist in backend: create congregation if none selected, otherwise update
+    const centerLat = window.demarcationPoints.reduce((acc, p) => acc + p.lat, 0) / window.demarcationPoints.length;
+    const centerLng = window.demarcationPoints.reduce((acc, p) => acc + p.lng, 0) / window.demarcationPoints.length;
+    const payload = {
+      boundaries: { type: 'Polygon', coordinates: [coordinates.map(([lat, lng]) => [lng, lat])] },
+      center: { lng: centerLng, lat: centerLat }
+    };
+
+    const csrf = document.querySelector('meta[name="csrf-token"]').content;
+
+    if (!currentCongregationId) {
+      const name = prompt('Nombre para la congregación (obligatorio):');
+      if (!name) {
+        alert('Debes ingresar un nombre para crear la congregación.');
+        return;
+      }
+      const createBody = Object.assign({ name: name }, payload);
+      fetch('/api/v1/congregations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrf
+        },
+        body: JSON.stringify(createBody)
+      })
+      .then(async (r) => {
+        const body = await r.json().catch(() => null);
+        if (!r.ok) {
+          const msg = body && body.errors ? body.errors.join(', ') : `HTTP ${r.status}`;
+          throw new Error(msg);
+        }
+        return body;
+      })
+      .then(feature => {
+        if (!feature || !feature.properties || !feature.properties.id) {
+          throw new Error('Respuesta inválida al crear congregación');
+        }
+        currentCongregationId = feature.properties.id;
+        // Añadir al selector y seleccionarlo
+        const select = document.getElementById('congregation-filter');
+        const opt = document.createElement('option');
+        opt.value = feature.properties.id;
+        opt.textContent = feature.properties.name || name;
+        select.appendChild(opt);
+        select.value = String(feature.properties.id);
+        loadMainCongregationPolygon();
+        alert('✅ Zona principal creada y guardada en la nueva congregación.');
+      })
+      .catch(err => {
+        console.error('Error creando congregación:', err);
+        alert(`Error creando la congregación: ${err.message}`);
+      });
+    } else {
+      fetch(`/api/v1/congregations/${currentCongregationId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrf
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(async (r) => {
+        const body = await r.json().catch(() => null);
+        if (!r.ok) {
+          const msg = body && body.errors ? body.errors.join(', ') : `HTTP ${r.status}`;
+          throw new Error(msg);
+        }
+        return body;
+      })
+      .then(() => {
+        loadMainCongregationPolygon();
+        alert('✅ Zona principal guardada para la congregación seleccionada.');
+      })
+      .catch(err => {
+        console.error('Error guardando polígono de congregación:', err);
+        alert(`Error guardando la zona principal: ${err.message}`);
+      });
+    }
   }
   
   // Function to edit main territory
