@@ -166,26 +166,57 @@
     fetch('/api/v1/congregations')
       .then(response => response.json())
       .then(data => {
+        window.congregationsById = {};
+        window.congregationsHasGeometry = {};
         const select = document.getElementById('congregation-filter');
         select.innerHTML = '';
         const placeholder = document.createElement('option');
         placeholder.value = '';
         placeholder.textContent = 'Select congregation';
         select.appendChild(placeholder);
-        data.forEach(feature => {
+        const features = (data || []).filter(feature => feature && feature.geometry);
+        features.forEach(feature => {
           const opt = document.createElement('option');
           opt.value = feature.properties.id;
           opt.textContent = feature.properties.name;
           select.appendChild(opt);
+          window.congregationsById[String(feature.properties.id)] = feature.properties.name || '';
+          window.congregationsHasGeometry[String(feature.properties.id)] = !!feature.geometry;
         });
-        select.addEventListener('change', function() {
+        // Reset selection if current is not present anymore
+        if (currentCongregationId && !window.congregationsById[String(currentCongregationId)]) {
+          currentCongregationId = null;
+          select.value = '';
+        } else if (currentCongregationId) {
+          select.value = String(currentCongregationId);
+        }
+        select.onchange = function() {
           currentCongregationId = this.value || null;
           // Clear demarcation and previous main polygon when switching congregations
           clearDemarcation();
           if (window.mainLayerGroup) { window.mainLayerGroup.clearLayers(); }
+          // Update label always with selected name
+          const name = currentCongregationId ? (window.congregationsById[String(currentCongregationId)] || 'Main Zone') : 'Main Zone';
+          const lbl = document.getElementById('congregation-name-label');
+          if (lbl) { lbl.textContent = name; }
+          ['btn-save-name','btn-edit-name','btn-print-name','btn-delete-name'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.textContent = name; }
+          });
+          // Only draw map and show controls if congregation has geometry
+          const hasGeom = currentCongregationId && window.congregationsHasGeometry[String(currentCongregationId)];
+          if (hasGeom) {
+            loadMainCongregationPolygon();
+          } else {
+            // Hide controls if no geometry yet
+            document.getElementById('main-territory-controls').style.display = 'none';
+          }
           loadTerritories();
+        };
+        // If there is a current selection and it has geometry, draw it
+        if (currentCongregationId && window.congregationsHasGeometry[String(currentCongregationId)]) {
           loadMainCongregationPolygon();
-        });
+        }
       });
   }
 
@@ -209,9 +240,19 @@
       .then(feature => {
         // Remove previous layers
         if (window.mainLayerGroup) { window.mainLayerGroup.clearLayers(); }
+        // Also remove any lingering main_congregation layers added directly to map (defensive)
+        map.eachLayer((layer) => {
+          if (layer.feature && layer.feature.properties && layer.feature.properties.type === 'main_congregation') {
+            map.removeLayer(layer);
+          }
+        });
         if (!feature || !feature.geometry) { return; }
+        window.mainCongregationFeature = feature;
         window.mainTerritoryLayer = L.geoJSON(feature, {
-          style: { color: '#ffc107', fillColor: '#ffc107', fillOpacity: 0.2, weight: 4 }
+          style: { color: '#ffc107', fillColor: '#ffc107', fillOpacity: 0.2, weight: 4 },
+          onEachFeature: function(f, layer) {
+            layer.feature = { properties: { type: 'main_congregation' } };
+          }
         }).addTo(window.mainLayerGroup);
         if (feature.properties && feature.properties.center) {
           map.setView([feature.properties.center.lat, feature.properties.center.lng], 15);
@@ -863,7 +904,11 @@
     const coordinates = window.demarcationPoints.map(point => [point.lat, point.lng]);
     
     if (window.mainTerritoryLayer) {
-      map.removeLayer(window.mainTerritoryLayer);
+      if (window.mainLayerGroup && window.mainLayerGroup.hasLayer(window.mainTerritoryLayer)) {
+        window.mainLayerGroup.removeLayer(window.mainTerritoryLayer);
+      } else {
+        map.removeLayer(window.mainTerritoryLayer);
+      }
     }
     
     window.mainTerritoryLayer = L.polygon(coordinates, {
@@ -871,7 +916,9 @@
       fillColor: '#ffc107',
       fillOpacity: 0.2,
       weight: 4
-    }).addTo(map);
+    }).addTo(window.mainLayerGroup || map);
+    // tag as main_congregation for future cleanup
+    window.mainTerritoryLayer.feature = { properties: { type: 'main_congregation' } };
     
     // Add popup with information
     window.mainTerritoryLayer.bindPopup(`
@@ -1026,9 +1073,36 @@
         }
       }).then(() => {
         if (window.mainLayerGroup) { window.mainLayerGroup.clearLayers(); }
+        // remove tagged main layers
+        map.eachLayer((layer) => {
+          if (layer.feature && layer.feature.properties && layer.feature.properties.type === 'main_congregation') {
+            map.removeLayer(layer);
+          }
+        });
+        // remove any untagged polygons that are not territories (defensive)
+        map.eachLayer((layer) => {
+          const isPolygon = typeof L !== 'undefined' && layer instanceof L.Polygon;
+          const isTerritory = layer.feature && layer.feature.properties && layer.feature.properties.type === 'territory';
+          if (isPolygon && !isTerritory) {
+            map.removeLayer(layer);
+          }
+        });
+        if (window.mainTerritoryLayer && map.hasLayer(window.mainTerritoryLayer)) {
+          map.removeLayer(window.mainTerritoryLayer);
+        }
         window.mainTerritoryLayer = null;
+        clearDemarcation();
         window.mainTerritoryPoints = null;
         document.getElementById('main-territory-controls').style.display = 'none';
+        // Reset selector and reload lists
+        const select = document.getElementById('congregation-filter');
+        if (select) {
+          select.value = '';
+        }
+        currentCongregationId = null;
+        loadTerritories();
+        // Reload congregations to reflect changes
+        loadCongregations();
         alert('Main zone deleted');
       }).catch(err => alert(`Error deleting zone: ${err.message}`));
     }
@@ -1036,16 +1110,30 @@
   
   // Function to print main territory
   function printMainTerritory() {
-    if (!window.mainTerritoryPoints) {
-      // Try to use the loaded GeoJSON if exists
-      if (!window.mainTerritoryLayer) {
-        alert('No main zone demarcated');
-        return;
-      }
+    // Gather coordinates either from demarcation points, loaded feature or displayed layer
+    let coordinates = [];
+    if (window.mainTerritoryPoints && window.mainTerritoryPoints.length > 0) {
+      coordinates = window.mainTerritoryPoints.map(point => [point.lat, point.lng]);
+    } else if (window.mainCongregationFeature && window.mainCongregationFeature.geometry && window.mainCongregationFeature.geometry.coordinates) {
+      try {
+        const ring = window.mainCongregationFeature.geometry.coordinates[0] || [];
+        coordinates = ring.map(c => [c[1], c[0]]);
+      } catch (e) {}
+    } else if (window.mainTerritoryLayer) {
+      try {
+        const latLngs = window.mainTerritoryLayer.getLatLngs();
+        const ring = Array.isArray(latLngs) ? (Array.isArray(latLngs[0]) ? latLngs[0] : latLngs) : [];
+        coordinates = ring.map(ll => [ll.lat, ll.lng]);
+      } catch (e) {}
+    }
+    if (!coordinates || coordinates.length === 0) {
+      alert('No main zone demarcated');
+      return;
     }
     
     const printWindow = window.open('', '_blank');
-    const coordinates = window.mainTerritoryPoints ? window.mainTerritoryPoints.map(point => [point.lat, point.lng]) : [];
+    const congregationName = (window.congregationsById && currentCongregationId && window.congregationsById[String(currentCongregationId)]) || 'Main Congregation Zone';
+    const pointsCount = Math.max(coordinates.length - 1, 0);
     
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -1059,17 +1147,18 @@
           .info { margin: 20px 0; }
           @media print { .no-print { display: none; } }
         </style>
+        <!-- Leaflet already loaded in parent; keep minimal deps to avoid CSP/dup loads -->
       </head>
       <body>
         <div class="header">
-          <h1>🏛️ Main Congregation Zone</h1>
+          <h1>🏛️ ${congregationName}</h1>
           <h2>Copiapó, Atacama Region, Chile</h2>
           <p>Date: ${new Date().toLocaleDateString('en-US')}</p>
         </div>
         
         <div class="info">
           <h3>Zone Information:</h3>
-          <p><strong>Polygon points:</strong> ${coordinates.length - 1}</p>
+          <p><strong>Polygon points:</strong> ${pointsCount}</p>
           <p><strong>Coordinates:</strong></p>
           <ul>
             ${coordinates.slice(0, -1).map((coord, i) => 
@@ -1091,18 +1180,24 @@
     printWindow.document.close();
     
     setTimeout(() => {
-      const printMap = L.map(printWindow.document.getElementById('print-main-map')).setView([-27.3668, -70.3314], 16);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      }).addTo(printMap);
-      
-      L.polygon(coordinates, {
-        color: '#ffc107',
-        fillColor: '#ffc107',
-        fillOpacity: 0.3,
-        weight: 4
-      }).addTo(printMap);
-    }, 100);
+      try {
+        const printMap = L.map(printWindow.document.getElementById('print-main-map'));
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors'
+        }).addTo(printMap);
+        const poly = L.polygon(coordinates, {
+          color: '#ffc107',
+          fillColor: '#ffc107',
+          fillOpacity: 0.3,
+          weight: 4
+        }).addTo(printMap);
+        const bounds = L.latLngBounds(coordinates.map(c => [c[0], c[1]]));
+        printMap.fitBounds(bounds, { padding: [20, 20] });
+        printMap.invalidateSize(true);
+      } catch (e) {
+        // Fallback: render simple list only
+      }
+    }, 150);
   }
   
   // Function to print general territory

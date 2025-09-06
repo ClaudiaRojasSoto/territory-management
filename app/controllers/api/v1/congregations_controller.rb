@@ -49,23 +49,29 @@ class Api::V1::CongregationsController < ApplicationController
     attributes[:description] = description if description.present?
 
     if raw.key?('boundaries') || raw.key?(:boundaries)
-      return ActionController::Parameters.new(attributes).permit(:name, :description, :boundaries, :center) if raw['boundaries'].nil? || raw[:boundaries].nil?
-      geojson = raw['boundaries'] || raw[:boundaries]
-      if (geojson['type'] || geojson[:type]) == 'Polygon' && (geojson['coordinates'] || geojson[:coordinates]).present?
-        coords_arr = geojson['coordinates'] || geojson[:coordinates]
-        ring = coords_arr[0]
-        coords = ring.map { |coord| "#{coord[0]} #{coord[1]}" }.join(', ')
-        attributes[:boundaries] = "POLYGON((#{coords}))"
+      if raw['boundaries'].nil? || raw[:boundaries].nil?
+        attributes[:boundaries] = nil
+      else
+        geojson = raw['boundaries'] || raw[:boundaries]
+        if (geojson['type'] || geojson[:type]) == 'Polygon' && (geojson['coordinates'] || geojson[:coordinates]).present?
+          coords_arr = geojson['coordinates'] || geojson[:coordinates]
+          ring = coords_arr[0]
+          coords = ring.map { |coord| "#{coord[0]} #{coord[1]}" }.join(', ')
+          attributes[:boundaries] = "POLYGON((#{coords}))"
+        end
       end
     end
 
     if raw.key?('center') || raw.key?(:center)
-      return ActionController::Parameters.new(attributes).permit(:name, :description, :boundaries, :center) if raw['center'].nil? || raw[:center].nil?
-      center = raw['center'] || raw[:center]
-      lng = center['lng'] || center[:lng]
-      lat = center['lat'] || center[:lat]
-      if lng.present? && lat.present?
-        attributes[:center] = "POINT(#{lng} #{lat})"
+      if raw['center'].nil? || raw[:center].nil?
+        attributes[:center] = nil
+      else
+        center = raw['center'] || raw[:center]
+        lng = center['lng'] || center[:lng]
+        lat = center['lat'] || center[:lat]
+        if lng.present? && lat.present?
+          attributes[:center] = "POINT(#{lng} #{lat})"
+        end
       end
     end
 
