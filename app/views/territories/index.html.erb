@@ -27,18 +27,18 @@
           
           <!-- Main Territory Controls -->
           <div id="main-territory-controls" style="display: none;" class="mb-3 p-3 border rounded bg-light">
-            <h6 class="text-center mb-3">🏛️ Main Territory</h6>
+            <h6 class="text-center mb-3">🏛️ <span id="congregation-name-label">Main Territory</span></h6>
             <button class="btn btn-success btn-sm w-100 mb-2" onclick="saveMainTerritory()">
-              💾 Save Main Zone
+              💾 Save <span id="btn-save-name">Main Zone</span>
             </button>
             <button class="btn btn-primary btn-sm w-100 mb-2" onclick="editMainTerritory()">
-              ✏️ Edit Main Zone
+              ✏️ Edit <span id="btn-edit-name">Main Zone</span>
             </button>
             <button class="btn btn-info btn-sm w-100 mb-2" onclick="printMainTerritory()">
-              🖨️ Print Main Zone
+              🖨️ Print <span id="btn-print-name">Main Zone</span>
             </button>
             <button class="btn btn-danger btn-sm w-100" onclick="deleteMainTerritory()">
-              🗑️ Delete Main Zone
+              🗑️ Delete <span id="btn-delete-name">Main Zone</span>
             </button>
           </div>
           
@@ -216,6 +216,12 @@
         if (feature.properties && feature.properties.center) {
           map.setView([feature.properties.center.lat, feature.properties.center.lng], 15);
         }
+        const name = (feature.properties && feature.properties.name) ? feature.properties.name : 'Main Zone';
+        document.getElementById('congregation-name-label').textContent = name;
+        document.getElementById('btn-save-name').textContent = name;
+        document.getElementById('btn-edit-name').textContent = name;
+        document.getElementById('btn-print-name').textContent = name;
+        document.getElementById('btn-delete-name').textContent = name;
         document.getElementById('main-territory-controls').style.display = 'block';
       })
       .catch(err => console.error('Error loading congregation polygon:', err));
@@ -1004,27 +1010,42 @@
     }
     
     if (confirm('Are you sure you want to delete the main zone?')) {
-      // Remove from map
-      map.removeLayer(window.mainTerritoryLayer);
-      window.mainTerritoryLayer = null;
-      window.mainTerritoryPoints = null;
-      
-      // Hide controls
-      document.getElementById('main-territory-controls').style.display = 'none';
-      
-      alert('Main zone deleted');
+      const csrf = document.querySelector('meta[name="csrf-token"]').content;
+      fetch(`/api/v1/congregations/${currentCongregationId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrf
+        },
+        body: JSON.stringify({ boundaries: null, center: null })
+      }).then(async (r) => {
+        if (!r.ok) {
+          const body = await r.json().catch(() => null);
+          const msg = body && body.errors ? body.errors.join(', ') : `HTTP ${r.status}`;
+          throw new Error(msg);
+        }
+      }).then(() => {
+        if (window.mainLayerGroup) { window.mainLayerGroup.clearLayers(); }
+        window.mainTerritoryLayer = null;
+        window.mainTerritoryPoints = null;
+        document.getElementById('main-territory-controls').style.display = 'none';
+        alert('Main zone deleted');
+      }).catch(err => alert(`Error deleting zone: ${err.message}`));
     }
   }
   
   // Function to print main territory
   function printMainTerritory() {
     if (!window.mainTerritoryPoints) {
-      alert('No main zone demarcated');
-      return;
+      // Try to use the loaded GeoJSON if exists
+      if (!window.mainTerritoryLayer) {
+        alert('No main zone demarcated');
+        return;
+      }
     }
     
     const printWindow = window.open('', '_blank');
-    const coordinates = window.mainTerritoryPoints.map(point => [point.lat, point.lng]);
+    const coordinates = window.mainTerritoryPoints ? window.mainTerritoryPoints.map(point => [point.lat, point.lng]) : [];
     
     printWindow.document.write(`
       <!DOCTYPE html>

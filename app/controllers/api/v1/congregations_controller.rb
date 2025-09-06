@@ -48,7 +48,8 @@ class Api::V1::CongregationsController < ApplicationController
     attributes[:name] = name if name.present?
     attributes[:description] = description if description.present?
 
-    if raw['boundaries'].present? || raw[:boundaries].present?
+    if raw.key?('boundaries') || raw.key?(:boundaries)
+      return ActionController::Parameters.new(attributes).permit(:name, :description, :boundaries, :center) if raw['boundaries'].nil? || raw[:boundaries].nil?
       geojson = raw['boundaries'] || raw[:boundaries]
       if (geojson['type'] || geojson[:type]) == 'Polygon' && (geojson['coordinates'] || geojson[:coordinates]).present?
         coords_arr = geojson['coordinates'] || geojson[:coordinates]
@@ -58,7 +59,8 @@ class Api::V1::CongregationsController < ApplicationController
       end
     end
 
-    if raw['center'].present? || raw[:center].present?
+    if raw.key?('center') || raw.key?(:center)
+      return ActionController::Parameters.new(attributes).permit(:name, :description, :boundaries, :center) if raw['center'].nil? || raw[:center].nil?
       center = raw['center'] || raw[:center]
       lng = center['lng'] || center[:lng]
       lat = center['lat'] || center[:lat]

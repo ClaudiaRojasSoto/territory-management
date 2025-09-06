@@ -2,8 +2,7 @@ class Congregation < ApplicationRecord
   has_many :territories, dependent: :destroy
 
   validates :name, presence: true
-  validates :boundaries, presence: true
-  validates :center, presence: true
+  # Permitir nil para poder borrar la zona principal
 
   def to_geojson
     {
