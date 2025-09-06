@@ -3,4 +3,7 @@ import "@hotwired/turbo-rails"
 import "controllers"
 
 // Bootstrap JavaScript
-import 'bootstrap/dist/js/bootstrap.bundle.min.js'
+import "bootstrap"
+
+// Debug
+console.log("Application.js loaded")

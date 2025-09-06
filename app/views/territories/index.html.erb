@@ -1,4 +1,4 @@
-<div class="container-fluid">
+<div class="container-fluid" data-controller="hello">
   <div class="row">
     <div class="col-md-3 sidebar">
       <div class="sidebar-content">
@@ -18,6 +18,15 @@
         
         <div class="territories-list" id="territories-list">
           <!-- Territories will be loaded here dynamically -->
+        </div>
+        <div class="mt-2">
+          <button class="btn btn-outline-secondary btn-sm" data-action="hello#greet">Probar Stimulus</button>
+          <div data-hello-target="output" class="small text-muted mt-1"></div>
+        </div>
+        
+        <div class="mt-2" data-controller="test">
+          <button class="btn btn-outline-primary btn-sm" data-action="test#showMessage">Probar Test Controller</button>
+          <div data-test-target="message" class="small mt-1"></div>
         </div>
         
         <div class="mt-3">
