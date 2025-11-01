@@ -82,7 +82,7 @@ export default class extends Controller {
             
             @media print {
               @page {
-                size: A4;
+                size: A4 landscape;
                 margin: 1cm;
               }
               html, body {
@@ -113,7 +113,7 @@ export default class extends Controller {
                 margin: 0 !important;
               }
               .map-container {
-                height: 24cm !important;
+                height: 17cm !important;
                 width: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
@@ -256,7 +256,7 @@ export default class extends Controller {
           }
           @media print {
             @page {
-              size: A4;
+              size: A4 landscape;
               margin: 1cm;
             }
             html, body {
@@ -298,7 +298,7 @@ export default class extends Controller {
               display: none !important;
             }
             .map-container {
-              height: 23cm !important;
+              height: 17cm !important;
               width: 100% !important;
               margin: 0 !important;
               padding: 0 !important;
@@ -481,7 +481,7 @@ export default class extends Controller {
               display: none !important;
             }
             .map-container {
-              height: 23cm !important;
+              height: 17cm !important;
               width: 100% !important;
               margin: 0 !important;
               padding: 0 !important;
