@@ -155,6 +155,16 @@ export default class extends Controller {
               }).addTo(printMap);
               
               printMap.fitBounds(polygon.getBounds(), { padding: [5, 5], maxZoom: 19 });
+              
+              // Remove elements completely when printing starts
+              window.onbeforeprint = function() {
+                document.querySelector('.header').remove();
+                document.querySelector('.no-print').remove();
+                document.body.style.margin = '0';
+                document.body.style.padding = '0';
+                document.body.style.overflow = 'hidden';
+                document.documentElement.style.overflow = 'hidden';
+              };
             };
           <\/script>
         </body>
@@ -332,6 +342,22 @@ export default class extends Controller {
             }).addTo(printMap);
             
             printMap.fitBounds(polygon.getBounds(), { padding: [30, 30], maxZoom: 19 });
+            
+            // Remove elements completely when printing starts
+            window.onbeforeprint = function() {
+              const header = document.querySelector('.header');
+              const info = document.querySelector('.info');
+              const coords = document.querySelector('.coordinates');
+              const noPrint = document.querySelector('.no-print');
+              if (header) header.remove();
+              if (info) info.remove();
+              if (coords) coords.remove();
+              if (noPrint) noPrint.remove();
+              document.body.style.margin = '0';
+              document.body.style.padding = '0';
+              document.body.style.overflow = 'hidden';
+              document.documentElement.style.overflow = 'hidden';
+            };
           };
         <\/script>
       </body>
@@ -491,6 +517,20 @@ export default class extends Controller {
             }).addTo(printMap);
             
             printMap.fitBounds(polygon.getBounds(), { padding: [30, 30], maxZoom: 19 });
+            
+            // Remove elements completely when printing starts
+            window.onbeforeprint = function() {
+              const header = document.querySelector('.header');
+              const info = document.querySelector('.info');
+              const noPrint = document.querySelector('.no-print');
+              if (header) header.remove();
+              if (info) info.remove();
+              if (noPrint) noPrint.remove();
+              document.body.style.margin = '0';
+              document.body.style.padding = '0';
+              document.body.style.overflow = 'hidden';
+              document.documentElement.style.overflow = 'hidden';
+            };
           };
         <\/script>
       </body>
