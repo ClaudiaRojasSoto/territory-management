@@ -23,10 +23,13 @@ export default class extends Controller {
     const map = window.territoryMap
     if (!map) return
     
-    // Clear existing territory layers
+    // Clear existing territory layers and labels
     map.eachLayer((layer) => {
-      if (layer.feature && layer.feature.properties && layer.feature.properties.type === 'territory') {
-        map.removeLayer(layer)
+      if (layer.feature && layer.feature.properties) {
+        const type = layer.feature.properties.type
+        if (type === 'territory' || type === 'territory-label') {
+          map.removeLayer(layer)
+        }
       }
     })
   }
@@ -89,6 +92,11 @@ export default class extends Controller {
     
     layer.bindPopup(popupContent)
     
+    // Add number label if territory has a number
+    if (properties.number && properties.center) {
+      this.addNumberLabel(properties)
+    }
+    
     // Mark as territory for easy identification
     layer.feature = { 
       ...layer.feature,
@@ -109,6 +117,33 @@ export default class extends Controller {
     layer.on('mouseout', () => {
       layer.setStyle(this.getTerritoryStyle(feature))
     })
+  }
+  
+  addNumberLabel(properties) {
+    const map = window.territoryMap
+    if (!map) return
+    
+    const { lat, lng } = properties.center
+    
+    // Create a div icon with the number
+    const numberIcon = L.divIcon({
+      className: 'territory-number-label',
+      html: `<div class="number-badge">${properties.number}</div>`,
+      iconSize: [40, 40],
+      iconAnchor: [20, 20]
+    })
+    
+    // Add marker to map
+    const marker = L.marker([lat, lng], { icon: numberIcon })
+    marker.addTo(map)
+    
+    // Mark it for clearing later
+    marker.feature = {
+      properties: {
+        type: 'territory-label',
+        territoryId: properties.id
+      }
+    }
   }
   
   translateStatus(status) {

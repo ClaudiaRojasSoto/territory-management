@@ -83,16 +83,10 @@ export default class extends Controller {
   
   async save() {
     const name = this.nameInputTarget.value.trim()
-    const description = this.descriptionInputTarget.value
-    const numberStr = prompt('Número para este territorio (opcional):')
+    const description = this.descriptionInputTarget.value.trim()
+    const numberValue = this.numberInputTarget.value
     
     // Validation
-    if (!name) {
-      alert('Por favor ingresa un nombre para el territorio')
-      this.nameInputTarget.focus()
-      return
-    }
-    
     if (this.drawnItems.getLayers().length === 0) {
       alert('Por favor dibuja un territorio en el mapa')
       return
@@ -117,9 +111,9 @@ export default class extends Controller {
     centerLng /= coordinates.length
     
     const territoryData = {
-      name: name,
-      description: description,
-      number: numberStr ? parseInt(numberStr, 10) : null,
+      name: name || null, // Will be auto-generated on backend if null
+      description: description || null,
+      number: numberValue ? parseInt(numberValue, 10) : null, // Will be auto-assigned if null
       congregation_id: window.currentCongregationId,
       boundaries: {
         type: 'Polygon',
@@ -180,6 +174,38 @@ export default class extends Controller {
         this.drawingMap.invalidateSize()
       }
     }, 200)
+    
+    // Suggest next available number
+    this.suggestNextNumber()
+  }
+  
+  async suggestNextNumber() {
+    if (!window.currentCongregationId) {
+      return
+    }
+    
+    try {
+      const response = await apiClient.get(`/congregations/${window.currentCongregationId}/territories`)
+      const territories = response || []
+      
+      // Find max number
+      let maxNumber = 0
+      territories.forEach(territory => {
+        const num = territory.properties?.number
+        if (num && num > maxNumber) {
+          maxNumber = num
+        }
+      })
+      
+      // Suggest next number
+      const nextNumber = maxNumber + 1
+      if (this.hasNumberInputTarget) {
+        this.numberInputTarget.placeholder = `Sugerido: ${nextNumber}`
+        this.numberInputTarget.value = '' // Leave empty for auto-assign
+      }
+    } catch (error) {
+      console.error('Error fetching territories for number suggestion:', error)
+    }
   }
 }
 

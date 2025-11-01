@@ -95,19 +95,30 @@
       <div class="modal-body">
         <form id="new-territory-form" data-territories--territory-form-target="form">
           <div class="mb-3">
-            <label for="territory-name" class="form-label">Nombre del Territorio</label>
+            <label for="territory-number" class="form-label">Número del Territorio</label>
+            <input type="number" 
+                   class="form-control" 
+                   id="territory-number" 
+                   data-territories--territory-form-target="numberInput"
+                   min="1"
+                   placeholder="Número automático si se deja vacío">
+            <div class="form-text">Se asignará el siguiente número disponible si se deja vacío</div>
+          </div>
+          <div class="mb-3">
+            <label for="territory-name" class="form-label">Nombre del Territorio (opcional)</label>
             <input type="text" 
                    class="form-control" 
                    id="territory-name" 
                    data-territories--territory-form-target="nameInput"
-                   required>
+                   placeholder="Ej: Zona Residencial Norte">
           </div>
           <div class="mb-3">
             <label for="territory-description" class="form-label">Descripción</label>
             <textarea class="form-control" 
                       id="territory-description" 
                       data-territories--territory-form-target="descriptionInput"
-                      rows="3"></textarea>
+                      rows="3"
+                      placeholder="Notas sobre el territorio..."></textarea>
           </div>
           <div class="mb-3">
             <label class="form-label">Dibuja el territorio en el mapa</label>
