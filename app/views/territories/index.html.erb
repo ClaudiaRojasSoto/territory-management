@@ -1,4 +1,4 @@
-<div class="container-fluid" data-controller="hello">
+<div class="container-fluid" data-controller="hello territories--map">
   <div class="row">
     <div class="col-md-3 sidebar">
       <div class="sidebar-content">
@@ -62,7 +62,12 @@
     </div>
     
     <div class="col-md-9">
-      <div id="map" style="height: 100vh; width: 100%;"></div>
+      <div id="map" 
+           data-territories--map-target="container"
+           data-territories--map-lat-value="-27.3668"
+           data-territories--map-lng-value="-70.3314"
+           data-territories--map-zoom-value="16"
+           style="height: 100vh; width: 100%;"></div>
     </div>
   </div>
 </div>
@@ -105,13 +110,14 @@
 <%= stylesheet_link_tag "https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" %>
 
 <script>
-  // Main map with Leaflet
-  const map = L.map('map').setView([-27.3668, -70.3314], 16); // Closer zoom to see streets
+  // Main map with Leaflet - AHORA MANEJADO POR territories--map CONTROLLER
+  // const map = L.map('map').setView([-27.3668, -70.3314], 16);
+  // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  //   attribution: '© OpenStreetMap contributors'
+  // }).addTo(map);
   
-  // Add OpenStreetMap layer (free)
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
+  // Obtener referencia al mapa desde el controlador Stimulus
+  const map = window.territoryMap;
   
   // Map for drawing territories
   const drawingMap = L.map('drawing-map').setView([-27.3668, -70.3314], 16);
@@ -164,10 +170,22 @@
   });
   
   // Load congregations and territories on initialization
-  map.whenReady(function() {
-    window.mainLayerGroup = L.layerGroup().addTo(map);
-    loadCongregations();
-  });
+  // Esperar a que el mapa esté listo (inicializado por el controlador)
+  function initializeWhenMapReady() {
+    if (window.territoryMap && window.mainLayerGroup) {
+      loadCongregations();
+    } else {
+      // Reintentar después de un corto delay
+      setTimeout(initializeWhenMapReady, 100);
+    }
+  }
+  
+  // Iniciar la carga cuando el DOM esté listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeWhenMapReady);
+  } else {
+    initializeWhenMapReady();
+  }
   
   let currentCongregationId = null;
 
