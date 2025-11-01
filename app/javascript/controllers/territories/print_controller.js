@@ -3,11 +3,10 @@ import { Controller } from "@hotwired/stimulus"
 // Connects to data-controller="territories--print"
 export default class extends Controller {
   connect() {
-    
     // Expose methods globally for backwards compatibility
     window.printTerritory = this.printTerritory.bind(this)
-    window.printMainTerritory = this.printMainTerritory.bind(this)
-    window.printGeneralTerritory = this.printGeneralTerritory.bind(this)
+    window.printMainTerritory = () => this.printMainTerritory()
+    window.printGeneralTerritory = () => this.printGeneralTerritory()
   }
   
   printTerritory(territoryId, territoryName) {
