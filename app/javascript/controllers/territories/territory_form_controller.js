@@ -147,10 +147,8 @@ export default class extends Controller {
         this.closeModal()
         this.clearForm()
         
-        // Reload territories
-        if (typeof loadTerritories === 'function') {
-          loadTerritories()
-        }
+        // Reload territories using Stimulus
+        this.reloadTerritories()
       }
     } catch (error) {
       console.error('Error creating territory:', error)
@@ -374,10 +372,8 @@ export default class extends Controller {
         alert('✅ Territorio creado exitosamente')
         this.cancelDrawing()
         
-        // Reload territories
-        if (typeof loadTerritories === 'function') {
-          loadTerritories()
-        }
+        // Reload territories using Stimulus
+        this.reloadTerritories()
       }
     } catch (error) {
       console.error('Error creating territory:', error)
@@ -417,6 +413,17 @@ export default class extends Controller {
     }
     if (this.hasDrawingControlsTarget) {
       this.drawingControlsTarget.style.display = 'none'
+    }
+  }
+  
+  reloadTerritories() {
+    // Find territory-list controller and reload
+    const listElement = document.querySelector('[data-controller~="territories--territory-list"]')
+    if (listElement) {
+      const listController = this.application.getControllerForElementAndIdentifier(listElement, 'territories--territory-list')
+      if (listController && typeof listController.reload === 'function') {
+        listController.reload()
+      }
     }
   }
 }
