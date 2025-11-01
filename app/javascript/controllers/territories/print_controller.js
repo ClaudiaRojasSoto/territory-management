@@ -44,41 +44,78 @@ export default class extends Controller {
             }
             body {
               margin: 0;
-              padding: 0;
-              height: 100vh;
-              overflow: hidden;
-            }
-            .no-print { 
-              display: none !important; 
+              padding: 20px;
+              font-family: Arial, sans-serif;
             }
             .header {
-              display: none !important;
+              text-align: center;
+              margin-bottom: 20px;
+              padding: 10px;
+              background-color: #f8f9fa;
+              border-radius: 5px;
             }
-            .info {
-              display: none !important;
-            }
-            .coordinates {
-              display: none !important;
+            .header h1 {
+              margin: 0 0 10px 0;
+              color: #333;
             }
             .map-container {
-              height: 100vh !important;
-              width: 100vw !important;
-              margin: 0 !important;
-              padding: 0 !important;
-              border: none !important;
-              page-break-inside: avoid;
-              position: absolute;
-              top: 0;
-              left: 0;
+              width: 100%;
+              height: 600px;
+              margin: 20px 0;
+              border: 2px solid #000;
+            }
+            .no-print {
+              text-align: center;
+              margin-top: 20px;
+            }
+            .no-print button {
+              padding: 10px 20px;
+              margin: 5px;
+              font-size: 16px;
+              cursor: pointer;
+              border-radius: 5px;
+              border: 1px solid #ccc;
+            }
+            .no-print button:hover {
+              background-color: #e9ecef;
+            }
+            
+            @media print {
+              body {
+                margin: 0;
+                padding: 0;
+              }
+              .no-print { 
+                display: none !important; 
+              }
+              .header {
+                display: none !important;
+              }
+              .map-container {
+                height: 100vh !important;
+                width: 100vw !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                page-break-inside: avoid;
+                position: absolute;
+                top: 0;
+                left: 0;
+              }
             }
           </style>
         </head>
         <body>
+          <div class="header">
+            <h1>📍 ${territoryName}</h1>
+            <p>${congregationName}</p>
+          </div>
+          
           <div id="print-map" class="map-container"></div>
           
-          <div class="no-print" style="text-align: center; margin-top: 20px;">
-            <button onclick="window.print()" style="padding: 10px 20px; margin: 5px;">🖨️ Imprimir</button>
-            <button onclick="window.close()" style="padding: 10px 20px; margin: 5px;">❌ Cerrar</button>
+          <div class="no-print">
+            <button onclick="window.print()">🖨️ Imprimir</button>
+            <button onclick="window.close()">❌ Cerrar</button>
           </div>
           
           <script>
