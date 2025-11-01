@@ -10,7 +10,6 @@ export default class extends Controller {
   }
   
   connect() {
-    console.log("Territory list controller connected!")
     this.territories = []
     
     // Setup status filter if target exists

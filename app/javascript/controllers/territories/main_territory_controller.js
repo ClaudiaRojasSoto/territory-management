@@ -11,11 +11,10 @@ export default class extends Controller {
   }
   
   connect() {
-    console.log("Main territory controller connected!")
     this.demarcationMode = false
     this.demarcationPoints = []
     this.demarcationPolygon = null
-    this.demarcationMarkers = [] // Track markers for cleanup
+    this.demarcationMarkers = []
     
     // Expose methods globally for backwards compatibility
     window.demarcateMainTerritory = this.startDemarcation.bind(this)
@@ -154,18 +153,14 @@ export default class extends Controller {
   }
   
   setupClickHandler(map) {
-    console.log("Setting up click handler, demarcationMode:", this.demarcationMode)
-    
     // Remove any existing click handlers first
     map.off('click')
     
     // Leaflet click event
     map.on('click', (e) => {
-      console.log("Map clicked!", "demarcationMode:", this.demarcationMode)
       if (!this.demarcationMode) return
       
       const latlng = e.latlng
-      console.log("Adding point at:", latlng)
       this.addDemarcationPoint(latlng)
     })
   }
@@ -174,12 +169,10 @@ export default class extends Controller {
     const map = window.territoryMap
     this.demarcationPoints.push(latlng)
     
-    console.log("Point added. Total points:", this.demarcationPoints.length)
-    
     // Add marker
     const marker = L.marker(latlng).addTo(map)
     marker.bindPopup(`Punto ${this.demarcationPoints.length}`)
-    this.demarcationMarkers.push(marker) // Track for cleanup
+    this.demarcationMarkers.push(marker)
     
     // Draw polygon if more than one point
     if (this.demarcationPoints.length > 1) {
@@ -313,8 +306,6 @@ export default class extends Controller {
     const map = window.territoryMap
     if (!map) return
     
-    console.log("Clearing demarcation")
-    
     if (this.demarcationPolygon) {
       map.removeLayer(this.demarcationPolygon)
       this.demarcationPolygon = null
@@ -394,20 +385,7 @@ export default class extends Controller {
     }
     
     try {
-      console.log("=== SAVING POLYGON ===")
-      console.log("Data being sent:", data)
-      console.log("Coordinates count:", coordinates.length)
-      console.log("First coordinate:", coordinates[0])
-      console.log("Last coordinate:", coordinates[coordinates.length - 1])
-      
       const updatedFeature = await apiClient.patch(`/congregations/${window.currentCongregationId}`, data)
-      console.log("=== SAVE RESPONSE ===")
-      console.log("Full response:", JSON.stringify(updatedFeature, null, 2))
-      console.log("Has geometry?", !!updatedFeature.geometry)
-      if (updatedFeature.geometry) {
-        console.log("Response geometry:", updatedFeature.geometry)
-        console.log("Response coordinates:", updatedFeature.geometry.coordinates)
-      }
       
       // Store current ID before clearing
       const currentId = window.currentCongregationId
@@ -429,20 +407,14 @@ export default class extends Controller {
           'territories--congregation'
         )
         if (congregationController) {
-          console.log("=== RENDERING POLYGON ===")
-          console.log("Current ID:", currentId)
-          
           // Set current ID
           congregationController.currentIdValue = currentId
           window.currentCongregationId = currentId
           
           // Render the polygon directly from the API response (fresh data!)
           if (updatedFeature && updatedFeature.geometry) {
-            console.log("Rendering polygon from response...")
             congregationController.renderPolygon(updatedFeature)
-            console.log("✅ Polygon rendered")
           } else {
-            console.warn("⚠️ No geometry in response, falling back to reload")
             await congregationController.loadPolygon()
           }
         }

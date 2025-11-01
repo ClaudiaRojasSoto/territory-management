@@ -13,7 +13,6 @@ export default class extends Controller {
   static outlets = ["territories--map"]
   
   connect() {
-    console.log("Congregation controller connected!")
     this.congregationsById = {}
     this.congregationsHasGeometry = {}
     this.loadCongregations()

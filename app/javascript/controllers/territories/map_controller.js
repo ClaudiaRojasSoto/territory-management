@@ -12,12 +12,10 @@ export default class extends Controller {
   }
   
   connect() {
-    console.log("Map controller connected!")
     this.initializeMap()
   }
   
   disconnect() {
-    console.log("Map controller disconnected!")
     if (this.map) {
       this.map.remove()
       this.map = null
@@ -56,20 +54,19 @@ export default class extends Controller {
       });
     }
     
-    console.log("Mapa inicializado en:", this.latValue, this.lngValue, "zoom:", this.zoomValue)
   }
   
-  // Método público para obtener el mapa
+  // Public method to get the map instance
   getMap() {
     return this.map
   }
   
-  // Método público para obtener el mainLayerGroup
+  // Public method to get the main layer group
   getMainLayerGroup() {
     return this.mainLayerGroup
   }
   
-  // Centrar el mapa en coordenadas específicas
+  // Center the map at specific coordinates
   setView(lat, lng, zoom = null) {
     if (this.map) {
       const z = zoom !== null ? zoom : this.map.getZoom()

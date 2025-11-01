@@ -3,7 +3,6 @@ import { Controller } from "@hotwired/stimulus"
 // Connects to data-controller="territories--print"
 export default class extends Controller {
   connect() {
-    console.log("Print controller connected!")
     
     // Expose methods globally for backwards compatibility
     window.printTerritory = this.printTerritory.bind(this)

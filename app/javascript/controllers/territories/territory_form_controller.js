@@ -6,7 +6,6 @@ export default class extends Controller {
   static targets = ["modal", "form", "drawingMap", "nameInput", "descriptionInput", "numberInput", "saveBtn"]
   
   connect() {
-    console.log("Territory form controller connected!")
     this.drawnItems = null
     this.drawingMap = null
     this.initializeDrawingMap()

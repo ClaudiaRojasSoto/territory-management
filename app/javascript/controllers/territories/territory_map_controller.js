@@ -4,7 +4,6 @@ import { LeafletHelper } from "../shared/leaflet_helper"
 // Connects to data-controller="territories--territory-map"
 export default class extends Controller {
   connect() {
-    console.log("Territory map controller connected!")
     this.territories = []
   }
   
