@@ -1,11 +1,14 @@
-<div class="container-fluid" data-controller="hello territories--map">
+<div class="container-fluid" data-controller="hello territories--map territories--congregation">
   <div class="row">
     <div class="col-md-3 sidebar">
       <div class="sidebar-content">
         <h2>Territories</h2>
         <div class="filters mb-3">
-          <label class="form-label">Congregation</label>
-          <select class="form-select mb-2" id="congregation-filter"></select>
+          <label class="form-label">Congregación</label>
+          <select class="form-select mb-2" 
+                  id="congregation-filter"
+                  data-territories--congregation-target="filter"
+                  data-action="change->territories--congregation#change"></select>
           <label class="form-label">Status</label>
           <select class="form-select" id="status-filter">
             <option value="">All statuses</option>
@@ -36,7 +39,8 @@
           
           <!-- Main Territory Controls -->
           <div id="main-territory-controls" style="display: none;" class="mb-3 p-3 border rounded bg-light">
-            <h6 class="text-center mb-3">🏛️ <span id="congregation-name-label">Main Territory</span></h6>
+            <h6 class="text-center mb-3">🏛️ <span id="congregation-name-label" 
+                                                    data-territories--congregation-target="nameLabel">Zona Principal</span></h6>
             <button class="btn btn-success btn-sm w-100 mb-2" onclick="saveMainTerritory()">
               💾 Save <span id="btn-save-name">Main Zone</span>
             </button>
@@ -194,62 +198,11 @@
   
   let currentCongregationId = null;
 
+  // NOW MANAGED BY territories--congregation CONTROLLER
+  // function loadCongregations() { ... }
+  // Keeping loadCongregations reference for backwards compatibility
   function loadCongregations() {
-    fetch('/api/v1/congregations')
-      .then(response => response.json())
-      .then(data => {
-        window.congregationsById = {};
-        window.congregationsHasGeometry = {};
-        const select = document.getElementById('congregation-filter');
-        select.innerHTML = '';
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = 'Select congregation';
-        select.appendChild(placeholder);
-        const features = (data || []).filter(feature => feature && feature.geometry);
-        features.forEach(feature => {
-          const opt = document.createElement('option');
-          opt.value = feature.properties.id;
-          opt.textContent = feature.properties.name;
-          select.appendChild(opt);
-          window.congregationsById[String(feature.properties.id)] = feature.properties.name || '';
-          window.congregationsHasGeometry[String(feature.properties.id)] = !!feature.geometry;
-        });
-        // Reset selection if current is not present anymore
-        if (currentCongregationId && !window.congregationsById[String(currentCongregationId)]) {
-          currentCongregationId = null;
-          select.value = '';
-        } else if (currentCongregationId) {
-          select.value = String(currentCongregationId);
-        }
-        select.onchange = function() {
-          currentCongregationId = this.value || null;
-          // Clear demarcation and previous main polygon when switching congregations
-          clearDemarcation();
-          if (window.mainLayerGroup) { window.mainLayerGroup.clearLayers(); }
-          // Update label always with selected name
-          const name = currentCongregationId ? (window.congregationsById[String(currentCongregationId)] || 'Main Zone') : 'Main Zone';
-          const lbl = document.getElementById('congregation-name-label');
-          if (lbl) { lbl.textContent = name; }
-          ['btn-save-name','btn-edit-name','btn-print-name','btn-delete-name'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) { el.textContent = name; }
-          });
-          // Only draw map and show controls if congregation has geometry
-          const hasGeom = currentCongregationId && window.congregationsHasGeometry[String(currentCongregationId)];
-          if (hasGeom) {
-            loadMainCongregationPolygon();
-          } else {
-            // Hide controls if no geometry yet
-            document.getElementById('main-territory-controls').style.display = 'none';
-          }
-          loadTerritories();
-        };
-        // If there is a current selection and it has geometry, draw it
-        if (currentCongregationId && window.congregationsHasGeometry[String(currentCongregationId)]) {
-          loadMainCongregationPolygon();
-        }
-      });
+    console.log("loadCongregations called - now managed by congregation controller")
   }
 
   // Function to load territories
@@ -264,40 +217,11 @@
       .catch(error => console.error('Error:', error));
   }
 
-  // Load and render the main congregation polygon
+  // NOW MANAGED BY territories--congregation CONTROLLER
+  // function loadMainCongregationPolygon() { ... }
+  // Keeping reference for backwards compatibility
   function loadMainCongregationPolygon() {
-    if (!currentCongregationId) { return; }
-    fetch(`/api/v1/congregations/${currentCongregationId}`)
-      .then(r => r.json())
-      .then(feature => {
-        // Remove previous layers
-        if (window.mainLayerGroup) { window.mainLayerGroup.clearLayers(); }
-        // Also remove any lingering main_congregation layers added directly to map (defensive)
-        map.eachLayer((layer) => {
-          if (layer.feature && layer.feature.properties && layer.feature.properties.type === 'main_congregation') {
-            map.removeLayer(layer);
-          }
-        });
-        if (!feature || !feature.geometry) { return; }
-        window.mainCongregationFeature = feature;
-        window.mainTerritoryLayer = L.geoJSON(feature, {
-          style: { color: '#ffc107', fillColor: '#ffc107', fillOpacity: 0.2, weight: 4 },
-          onEachFeature: function(f, layer) {
-            layer.feature = { properties: { type: 'main_congregation' } };
-          }
-        }).addTo(window.mainLayerGroup);
-        if (feature.properties && feature.properties.center) {
-          map.setView([feature.properties.center.lat, feature.properties.center.lng], 15);
-        }
-        const name = (feature.properties && feature.properties.name) ? feature.properties.name : 'Main Zone';
-        document.getElementById('congregation-name-label').textContent = name;
-        document.getElementById('btn-save-name').textContent = name;
-        document.getElementById('btn-edit-name').textContent = name;
-        document.getElementById('btn-print-name').textContent = name;
-        document.getElementById('btn-delete-name').textContent = name;
-        document.getElementById('main-territory-controls').style.display = 'block';
-      })
-      .catch(err => console.error('Error loading congregation polygon:', err));
+    console.log("loadMainCongregationPolygon called - now managed by congregation controller")
   }
   
   // Function to display territories on map
