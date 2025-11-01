@@ -394,11 +394,20 @@ export default class extends Controller {
     }
     
     try {
-      const response = await apiClient.patch(`/congregations/${window.currentCongregationId}`, data)
-      console.log("Save response:", response)
+      const updatedFeature = await apiClient.patch(`/congregations/${window.currentCongregationId}`, data)
+      console.log("Save response (updated feature):", updatedFeature)
+      
+      // Store current ID before clearing
+      const currentId = window.currentCongregationId
+      
+      this.clearDemarcation()
       
       alert('✅ Zona principal guardada exitosamente')
-      this.clearDemarcation()
+      
+      // Clear main layer to show fresh data
+      if (window.mainLayerGroup) {
+        window.mainLayerGroup.clearLayers()
+      }
       
       // Reload congregation data and polygon through congregation controller
       const congregationElement = document.querySelector('[data-controller~="territories--congregation"]')
@@ -408,20 +417,20 @@ export default class extends Controller {
           'territories--congregation'
         )
         if (congregationController) {
-          // Store current ID to restore after reload
-          const currentId = window.currentCongregationId
-          console.log("Reloading congregations, current ID:", currentId)
+          console.log("Rendering updated polygon directly from save response")
           
-          // Reload all congregations to update the list
-          await congregationController.loadCongregations()
-          
-          // Make sure currentIdValue is set correctly
+          // Set current ID
           congregationController.currentIdValue = currentId
-          congregationController.filterTarget.value = currentId
           window.currentCongregationId = currentId
           
-          // Note: loadPolygon is already called by populateFilter if has geometry
-          console.log("Congregations reloaded, polygon should be visible")
+          // Render the polygon directly from the API response (fresh data!)
+          if (updatedFeature && updatedFeature.geometry) {
+            congregationController.renderPolygon(updatedFeature)
+            console.log("Polygon rendered with fresh geometry from save")
+          } else {
+            console.warn("No geometry in response, falling back to reload")
+            await congregationController.loadPolygon()
+          }
         }
       }
     } catch (error) {
