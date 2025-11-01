@@ -59,10 +59,37 @@
             </button>
           </div>
           
-          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#new-territory-modal">
-            ✏️ Nuevo Territorio Pequeño
+          <button class="btn btn-primary" 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#new-territory-modal"
+                  style="display: none;">
+            ✏️ Nuevo Territorio Pequeño (Modal)
           </button>
-          <button class="btn btn-success ms-2" 
+          
+          <button class="btn btn-primary w-100 mb-2" 
+                  id="draw-small-territory-btn"
+                  data-territories--territory-form-target="drawBtn"
+                  data-action="click->territories--territory-form#startDrawing">
+            ✏️ Dibujar Territorio Pequeño
+          </button>
+          
+          <div id="small-territory-controls" 
+               style="display: none;" 
+               class="mb-3 p-3 border rounded bg-light"
+               data-territories--territory-form-target="drawingControls">
+            <h6 class="text-center mb-3">✏️ Dibujando Territorio</h6>
+            <small class="d-block text-muted mb-3 text-center">Haz clic en el mapa para crear el polígono</small>
+            <button class="btn btn-success btn-sm w-100 mb-2" 
+                    data-action="click->territories--territory-form#saveDrawnTerritory">
+              💾 Guardar Territorio
+            </button>
+            <button class="btn btn-danger btn-sm w-100" 
+                    data-action="click->territories--territory-form#cancelDrawing">
+              ❌ Cancelar
+            </button>
+          </div>
+          
+          <button class="btn btn-success" 
                   data-action="click->territories--print#printGeneralTerritory">
             🖨️ Imprimir Territorio General
           </button>

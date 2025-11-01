@@ -3,11 +3,13 @@ import apiClient from "../shared/api_client"
 
 // Connects to data-controller="territories--territory-form"
 export default class extends Controller {
-  static targets = ["modal", "form", "drawingMap", "nameInput", "descriptionInput", "numberInput", "saveBtn"]
+  static targets = ["modal", "form", "drawingMap", "nameInput", "descriptionInput", "numberInput", "saveBtn", "drawBtn", "drawingControls"]
   
   connect() {
     this.drawnItems = null
     this.drawingMap = null
+    this.isDrawingMode = false
+    this.currentDrawingLayer = null
     this.initializeDrawingMap()
   }
   
@@ -203,8 +205,182 @@ export default class extends Controller {
         this.numberInputTarget.placeholder = `Sugerido: ${nextNumber}`
         this.numberInputTarget.value = '' // Leave empty for auto-assign
       }
+      
+      return nextNumber
     } catch (error) {
       console.error('Error fetching territories for number suggestion:', error)
+      return 1
+    }
+  }
+  
+  // Start drawing mode on main map
+  startDrawing() {
+    if (!window.currentCongregationId) {
+      alert('Selecciona una congregación primero')
+      return
+    }
+    
+    const map = window.territoryMap
+    if (!map) {
+      alert('El mapa no está listo')
+      return
+    }
+    
+    this.isDrawingMode = true
+    
+    // Show controls, hide button
+    if (this.hasDrawBtnTarget) {
+      this.drawBtnTarget.style.display = 'none'
+    }
+    if (this.hasDrawingControlsTarget) {
+      this.drawingControlsTarget.style.display = 'block'
+    }
+    
+    // Initialize drawing on main map
+    this.initMainMapDrawing()
+  }
+  
+  initMainMapDrawing() {
+    const map = window.territoryMap
+    if (!map) return
+    
+    // Create feature group for drawing
+    this.mainDrawnItems = new L.FeatureGroup()
+    map.addLayer(this.mainDrawnItems)
+    
+    // Add draw control
+    this.drawControl = new L.Control.Draw({
+      draw: {
+        polygon: {
+          allowIntersection: false,
+          drawError: {
+            color: '#e1e100',
+            message: '<strong>Error:</strong> El polígono no puede intersectarse consigo mismo'
+          },
+          shapeOptions: {
+            color: '#3388ff',
+            fillColor: '#3388ff',
+            fillOpacity: 0.3
+          }
+        },
+        polyline: false,
+        circle: false,
+        rectangle: false,
+        circlemarker: false,
+        marker: false
+      },
+      edit: {
+        featureGroup: this.mainDrawnItems,
+        remove: true
+      }
+    })
+    
+    map.addControl(this.drawControl)
+    
+    // Setup drawing events
+    map.on('draw:created', (e) => {
+      this.currentDrawingLayer = e.layer
+      this.mainDrawnItems.addLayer(e.layer)
+    })
+    
+    map.on('draw:deleted', (e) => {
+      this.currentDrawingLayer = null
+    })
+  }
+  
+  async saveDrawnTerritory() {
+    if (!this.currentDrawingLayer) {
+      alert('Por favor dibuja un territorio en el mapa')
+      return
+    }
+    
+    if (!window.currentCongregationId) {
+      alert('Selecciona una congregación primero')
+      return
+    }
+    
+    // Get next suggested number
+    const nextNumber = await this.suggestNextNumber()
+    
+    // Ask for number (optional)
+    const numberInput = prompt(`Número del territorio (dejar vacío para auto-asignar #${nextNumber}):`)
+    const number = numberInput && numberInput.trim() ? parseInt(numberInput, 10) : null
+    
+    // Ask for name (optional)
+    const nameInput = prompt(`Nombre del territorio (opcional, se generará "Territorio ${number || nextNumber}" si se deja vacío):`)
+    const name = nameInput && nameInput.trim() ? nameInput : null
+    
+    // Get polygon coordinates
+    const coordinates = this.currentDrawingLayer.getLatLngs()[0].map(latLng => [latLng.lng, latLng.lat])
+    
+    // Calculate center
+    let centerLat = 0, centerLng = 0
+    coordinates.forEach(coord => {
+      centerLng += coord[0]
+      centerLat += coord[1]
+    })
+    centerLat /= coordinates.length
+    centerLng /= coordinates.length
+    
+    const territoryData = {
+      name: name || null,
+      description: null,
+      number: number || null,
+      congregation_id: window.currentCongregationId,
+      boundaries: {
+        type: 'Polygon',
+        coordinates: [coordinates]
+      },
+      center: {
+        lng: centerLng,
+        lat: centerLat
+      }
+    }
+    
+    try {
+      const data = await apiClient.post('/territories', territoryData)
+      
+      const createdId = data && data.properties && data.properties.id
+      if (createdId) {
+        alert('✅ Territorio creado exitosamente')
+        this.cancelDrawing()
+        
+        // Reload territories
+        if (typeof loadTerritories === 'function') {
+          loadTerritories()
+        }
+      }
+    } catch (error) {
+      console.error('Error creating territory:', error)
+      alert(`❌ Error al crear el territorio: ${error.message}`)
+    }
+  }
+  
+  cancelDrawing() {
+    const map = window.territoryMap
+    if (!map) return
+    
+    this.isDrawingMode = false
+    this.currentDrawingLayer = null
+    
+    // Remove draw control
+    if (this.drawControl) {
+      map.removeControl(this.drawControl)
+      this.drawControl = null
+    }
+    
+    // Remove drawn items
+    if (this.mainDrawnItems) {
+      map.removeLayer(this.mainDrawnItems)
+      this.mainDrawnItems = null
+    }
+    
+    // Show button, hide controls
+    if (this.hasDrawBtnTarget) {
+      this.drawBtnTarget.style.display = 'block'
+    }
+    if (this.hasDrawingControlsTarget) {
+      this.drawingControlsTarget.style.display = 'none'
     }
   }
 }
