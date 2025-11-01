@@ -1,4 +1,5 @@
 class Territory < ApplicationRecord
+  belongs_to :congregation
   belongs_to :assigned_to, class_name: 'User', optional: true
   
   validates :name, presence: true
@@ -47,15 +48,15 @@ class Territory < ApplicationRecord
   def to_geojson
     {
       type: 'Feature',
-      geometry: {
-        type: 'Polygon',
-        coordinates: boundaries.coordinates
-      },
+      geometry: RGeo::GeoJSON.encode(boundaries),
       properties: {
         id: id,
         name: name,
         status: status,
         area: area_in_acres,
+        number: number,
+        congregation_id: congregation_id,
+        center: center && { lng: center.longitude, lat: center.latitude },
         assigned_to: assigned_to&.name
       }
     }

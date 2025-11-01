@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   # API routes for AJAX
   namespace :api do
     namespace :v1 do
+      resources :congregations, only: [:index, :show, :create, :update, :destroy]
       resources :territories, only: [:index, :show, :create, :update, :destroy] do
         member do
           patch :assign

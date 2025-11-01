@@ -10,10 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_09_01_183620) do
+ActiveRecord::Schema[7.1].define(version: 2025_09_05_223804) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "postgis"
+
+  create_table "congregations", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.geometry "boundaries", limit: {:srid=>4326, :type=>"geometry"}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.geography "center", limit: {:srid=>4326, :type=>"st_point", :geographic=>true}
+    t.index ["boundaries"], name: "index_congregations_on_boundaries", using: :gist
+    t.index ["name"], name: "index_congregations_on_name"
+  end
 
   create_table "territories", force: :cascade do |t|
     t.string "name", null: false
@@ -25,12 +36,15 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_01_183620) do
     t.text "notes"
     t.decimal "area", precision: 10, scale: 2
     t.geometry "boundaries", limit: {:srid=>4326, :type=>"geometry"}
-    t.point "center"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "congregation_id", null: false
+    t.integer "number"
+    t.geography "center", limit: {:srid=>4326, :type=>"st_point", :geographic=>true}
     t.index ["assigned_to_id"], name: "index_territories_on_assigned_to_id"
     t.index ["boundaries"], name: "index_territories_on_boundaries", using: :gist
-    t.index ["center"], name: "index_territories_on_center", using: :gist
+    t.index ["congregation_id", "number"], name: "index_territories_on_congregation_id_and_number", unique: true, where: "(number IS NOT NULL)"
+    t.index ["congregation_id"], name: "index_territories_on_congregation_id"
     t.index ["status"], name: "index_territories_on_status"
   end
 
@@ -46,5 +60,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_01_183620) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "territories", "congregations"
   add_foreign_key "territories", "users", column: "assigned_to_id"
 end

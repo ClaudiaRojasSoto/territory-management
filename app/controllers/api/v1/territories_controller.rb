@@ -4,6 +4,9 @@ class Api::V1::TerritoriesController < ApplicationController
 
   def index
     @territories = Territory.all
+    if params[:congregation_id].present?
+      @territories = @territories.where(congregation_id: params[:congregation_id])
+    end
     render json: @territories.map(&:to_geojson)
   end
 
@@ -57,31 +60,34 @@ class Api::V1::TerritoriesController < ApplicationController
   end
 
   def territory_params
-    # Convertir los parámetros de GeoJSON a formato PostGIS
-    params = api_territory_params
+    raw = params[:territory].present? ? params[:territory] : params
+    raw = raw.respond_to?(:to_unsafe_h) ? raw.to_unsafe_h : raw
+    attributes = {}
+    attributes[:name] = raw['name'] || raw[:name]
+    attributes[:description] = raw['description'] || raw[:description]
+    attributes[:status] = raw['status'] || raw[:status]
+    attributes[:assigned_to_id] = raw['assigned_to_id'] || raw[:assigned_to_id]
+    attributes[:congregation_id] = raw['congregation_id'] || raw[:congregation_id]
+    attributes[:number] = raw['number'] || raw[:number]
     
-    if params[:boundaries].present?
-      # Convertir GeoJSON a WKT para PostGIS
-      geojson = params[:boundaries]
+    if raw['boundaries'].present? || raw[:boundaries].present?
+      geojson = raw['boundaries'] || raw[:boundaries]
       if geojson[:type] == 'Polygon' && geojson[:coordinates].present?
-        # Crear WKT string
         coords = geojson[:coordinates][0].map { |coord| "#{coord[0]} #{coord[1]}" }.join(', ')
-        wkt = "POLYGON((#{coords}))"
-        params[:boundaries] = wkt
+        attributes[:boundaries] = "POLYGON((#{coords}))"
       end
     end
     
-    if params[:center].present?
-      center = params[:center]
+    if raw['center'].present? || raw[:center].present?
+      center = raw['center'] || raw[:center]
       if center[:lng].present? && center[:lat].present?
-        params[:center] = "POINT(#{center[:lng]} #{center[:lat]})"
+        attributes[:center] = "POINT(#{center[:lng]} #{center[:lat]})"
       end
     end
-    
-    params.permit(:name, :description, :status, :assigned_to_id, :boundaries, :center)
+    ActionController::Parameters.new(attributes).permit(:name, :description, :status, :assigned_to_id, :boundaries, :center, :congregation_id, :number)
   end
 
   def api_territory_params
-    params.permit(:name, :description, :status, :assigned_to_id, boundaries: [:type, coordinates: []], center: [:lng, :lat])
+    params.permit(:name, :description, :status, :assigned_to_id, :congregation_id, :number, boundaries: [:type, coordinates: []], center: [:lng, :lat])
   end
 end

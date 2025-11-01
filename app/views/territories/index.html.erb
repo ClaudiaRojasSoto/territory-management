@@ -1,87 +1,127 @@
-<div class="container-fluid">
+<div class="container-fluid" data-controller="territories--map territories--congregation territories--territory-list territories--territory-map territories--main-territory territories--print">
   <div class="row">
     <div class="col-md-3 sidebar">
       <div class="sidebar-content">
         <h2>Territories</h2>
         <div class="filters mb-3">
-          <select class="form-select" id="status-filter">
-            <option value="">All statuses</option>
-            <option value="available">Available</option>
-            <option value="assigned">Assigned</option>
-            <option value="completed">Completed</option>
-            <option value="returned">Returned</option>
+          <label class="form-label">Congregación</label>
+          <select class="form-select mb-2" 
+                  id="congregation-filter"
+                  data-territories--congregation-target="filter"
+                  data-action="change->territories--congregation#change"></select>
+          <label class="form-label">Estado</label>
+          <select class="form-select" 
+                  id="status-filter"
+                  data-territories--territory-list-target="statusFilter">
+            <option value="">Todos los estados</option>
+            <option value="available">Disponible</option>
+            <option value="assigned">Asignado</option>
+            <option value="completed">Completado</option>
+            <option value="returned">Devuelto</option>
           </select>
         </div>
         
-        <div class="territories-list" id="territories-list">
-          <!-- Territories will be loaded here dynamically -->
+        <div class="territories-list" 
+             id="territories-list"
+             data-territories--territory-list-target="list">
         </div>
         
         <div class="mt-3">
-          <button class="btn btn-warning mb-2" onclick="demarcateMainTerritory()" style="width: 100%;">
-            🗺️ Demarcate Main Congregation Zone
+          <button class="btn btn-warning mb-2" 
+                  style="width: 100%;" 
+                  id="demarcate-main-btn"
+                  data-territories--main-territory-target="demarcateBtn"
+                  data-action="click->territories--main-territory#startDemarcation">
+            🗺️ Demarcar Zona Principal de la Congregación
           </button>
           
-          <!-- Main Territory Controls -->
-          <div id="main-territory-controls" style="display: none;" class="mb-3 p-3 border rounded bg-light">
-            <h6 class="text-center mb-3">🏛️ Main Territory</h6>
-            <button class="btn btn-success btn-sm w-100 mb-2" onclick="saveMainTerritory()">
-              💾 Save Main Zone
+          <div id="main-territory-controls" 
+               style="display: none;" 
+               class="mb-3 p-3 border rounded bg-light"
+               data-territories--main-territory-target="controls">
+            <h6 class="text-center mb-3">🏛️ <span id="congregation-name-label" 
+                                                    data-territories--congregation-target="nameLabel">Zona Principal</span></h6>
+            <button class="btn btn-success btn-sm w-100 mb-2" 
+                    data-action="click->territories--main-territory#save">
+              💾 Guardar <span id="btn-save-name">Zona Principal</span>
             </button>
-            <button class="btn btn-primary btn-sm w-100 mb-2" onclick="editMainTerritory()">
-              ✏️ Edit Main Zone
+            <button class="btn btn-primary btn-sm w-100 mb-2" 
+                    data-action="click->territories--main-territory#edit">
+              ✏️ Editar <span id="btn-edit-name">Zona Principal</span>
             </button>
             <button class="btn btn-info btn-sm w-100 mb-2" onclick="printMainTerritory()">
-              🖨️ Print Main Zone
+              🖨️ Imprimir <span id="btn-print-name">Zona Principal</span>
             </button>
-            <button class="btn btn-danger btn-sm w-100" onclick="deleteMainTerritory()">
-              🗑️ Delete Main Zone
+            <button class="btn btn-danger btn-sm w-100" 
+                    data-action="click->territories--main-territory#delete">
+              🗑️ Eliminar <span id="btn-delete-name">Zona Principal</span>
             </button>
           </div>
           
           <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#new-territory-modal">
-            ✏️ New Small Territory
+            ✏️ Nuevo Territorio Pequeño
           </button>
           <button class="btn btn-success ms-2" onclick="printGeneralTerritory()">
-            🖨️ Print General Territory
+            🖨️ Imprimir Territorio General
           </button>
         </div>
       </div>
     </div>
     
     <div class="col-md-9">
-      <div id="map" style="height: 100vh; width: 100%;"></div>
+      <div id="map" 
+           data-territories--map-target="container"
+           data-territories--map-lat-value="-27.3668"
+           data-territories--map-lng-value="-70.3314"
+           data-territories--map-zoom-value="13"
+           style="height: 100vh; width: 100%;"></div>
     </div>
   </div>
 </div>
 
-<!-- Modal for new territory -->
-<div class="modal fade" id="new-territory-modal" tabindex="-1">
+<div class="modal fade" 
+     id="new-territory-modal" 
+     tabindex="-1"
+     data-controller="territories--territory-form"
+     data-action="shown.bs.modal->territories--territory-form#modalOpened">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Create New Territory</h5>
+        <h5 class="modal-title">Crear Nuevo Territorio</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <form id="new-territory-form">
+        <form id="new-territory-form" data-territories--territory-form-target="form">
           <div class="mb-3">
-            <label for="territory-name" class="form-label">Territory Name</label>
-            <input type="text" class="form-control" id="territory-name" required>
+            <label for="territory-name" class="form-label">Nombre del Territorio</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="territory-name" 
+                   data-territories--territory-form-target="nameInput"
+                   required>
           </div>
           <div class="mb-3">
-            <label for="territory-description" class="form-label">Description</label>
-            <textarea class="form-control" id="territory-description" rows="3"></textarea>
+            <label for="territory-description" class="form-label">Descripción</label>
+            <textarea class="form-control" 
+                      id="territory-description" 
+                      data-territories--territory-form-target="descriptionInput"
+                      rows="3"></textarea>
           </div>
           <div class="mb-3">
-            <label class="form-label">Draw the territory on the map</label>
-            <div id="drawing-map" style="height: 400px;"></div>
+            <label class="form-label">Dibuja el territorio en el mapa</label>
+            <div id="drawing-map" 
+                 data-territories--territory-form-target="drawingMap"
+                 style="height: 400px;"></div>
           </div>
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" id="save-territory">Save</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" 
+                class="btn btn-primary" 
+                id="save-territory"
+                data-territories--territory-form-target="saveBtn"
+                data-action="click->territories--territory-form#save">Guardar</button>
       </div>
     </div>
   </div>
@@ -91,925 +131,3 @@
 <%= stylesheet_link_tag "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" %>
 <%= javascript_include_tag "https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js" %>
 <%= stylesheet_link_tag "https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" %>
-
-<script>
-  // Main map with Leaflet
-  const map = L.map('map').setView([-27.3668, -70.3314], 16); // Closer zoom to see streets
-  
-  // Add OpenStreetMap layer (free)
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
-  
-  // Map for drawing territories
-  const drawingMap = L.map('drawing-map').setView([-27.3668, -70.3314], 16);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(drawingMap);
-  
-  // Drawing tool
-  const drawnItems = new L.FeatureGroup();
-  drawingMap.addLayer(drawnItems);
-  
-  const drawControl = new L.Control.Draw({
-    draw: {
-      polygon: {
-        allowIntersection: false,
-        drawError: {
-          color: '#e1e100',
-          message: '<strong>Error:</strong> The polygon cannot intersect itself'
-        },
-        shapeOptions: {
-          color: '#3388ff',
-          fillColor: '#3388ff',
-          fillOpacity: 0.3
-        }
-      },
-      polyline: false,
-      circle: false,
-      rectangle: false,
-      circlemarker: false,
-      marker: false
-    },
-    edit: {
-      featureGroup: drawnItems,
-      remove: true
-    }
-  });
-  
-  drawingMap.addControl(drawControl);
-  
-  // Drawing events
-  drawingMap.on('draw:created', function(e) {
-    const layer = e.layer;
-    drawnItems.addLayer(layer);
-  });
-  
-  drawingMap.on('draw:deleted', function(e) {
-    e.layers.eachLayer(function(layer) {
-      drawnItems.removeLayer(layer);
-    });
-  });
-  
-  // Load territories on initialization
-  map.whenReady(function() {
-    loadTerritories();
-  });
-  
-  // Function to load territories
-  function loadTerritories() {
-    fetch('/api/v1/territories')
-      .then(response => response.json())
-      .then(data => {
-        displayTerritories(data);
-        updateTerritoriesList(data);
-      })
-      .catch(error => console.error('Error:', error));
-  }
-  
-  // Function to display territories on map
-  function displayTerritories(territories) {
-    // Clear existing territories
-    map.eachLayer((layer) => {
-      if (layer.feature && layer.feature.properties && layer.feature.properties.type === 'territory') {
-        map.removeLayer(layer);
-      }
-    });
-    
-    territories.forEach(territory => {
-      const geojson = territory.to_geojson;
-      const layer = L.geoJSON(geojson, {
-        style: function(feature) {
-          const status = feature.properties.status;
-          let color = '#6c757d'; // default
-          
-          switch(status) {
-            case 'available':
-              color = '#28a745'; // green
-              break;
-            case 'assigned':
-              color = '#ffc107'; // yellow
-              break;
-            case 'completed':
-              color = '#17a2b8'; // blue
-              break;
-            case 'returned':
-              color = '#dc3545'; // red
-              break;
-          }
-          
-          return {
-            fillColor: color,
-            weight: 2,
-            opacity: 1,
-            color: '#000',
-            fillOpacity: 0.6
-          };
-        },
-        onEachFeature: function(feature, layer) {
-          const properties = feature.properties;
-          
-          // Popup on click
-          layer.bindPopup(`
-            <h6>${properties.name}</h6>
-            <p><strong>Status:</strong> ${properties.status}</p>
-            <p><strong>Area:</strong> ${properties.area} acres</p>
-            <p><strong>Assigned to:</strong> ${properties.assigned_to || 'Not assigned'}</p>
-          `);
-          
-          // Mark as territory to clean it later
-          layer.feature = { properties: { type: 'territory' } };
-        }
-      }).addTo(map);
-    });
-  }
-  
-  // Function to update territories list
-  function updateTerritoriesList(territories) {
-    const list = document.getElementById('territories-list');
-    list.innerHTML = '';
-    
-    territories.forEach(territory => {
-      const item = document.createElement('div');
-      item.className = 'territory-item p-2 border-bottom';
-      item.innerHTML = `
-        <h6>${territory.name}</h6>
-        <small class="text-muted">${territory.status}</small>
-        <br>
-        <small>${territory.area} acres</small>
-        <div class="mt-2">
-          <button class="btn btn-sm btn-outline-primary" onclick="printTerritory(${territory.id}, '${territory.name}')">
-            Print
-          </button>
-        </div>
-      `;
-      
-      item.addEventListener('click', () => {
-        // Center map on territory
-        const center = territory.center;
-        if (center && center.lat && center.lng) {
-          map.setView([center.lat, center.lng], 15);
-        }
-      });
-      
-      list.appendChild(item);
-    });
-  }
-  
-  // Filter by status
-  document.getElementById('status-filter').addEventListener('change', function() {
-    const status = this.value;
-          // Implement filtering
-  });
-  
-  // Save new territory
-  document.getElementById('save-territory').addEventListener('click', function() {
-    const name = document.getElementById('territory-name').value;
-    const description = document.getElementById('territory-description').value;
-    
-    if (drawnItems.getLayers().length === 0) {
-      alert('Please draw a territory on the map');
-      return;
-    }
-    
-    const layer = drawnItems.getLayers()[0];
-    const coordinates = layer.getLatLngs()[0].map(latLng => [latLng.lng, latLng.lat]);
-    
-    // Calculate polygon center
-    let centerLat = 0, centerLng = 0;
-    coordinates.forEach(coord => {
-      centerLng += coord[0];
-      centerLat += coord[1];
-    });
-    centerLat /= coordinates.length;
-    centerLng /= coordinates.length;
-    
-    const territoryData = {
-      name: name,
-      description: description,
-      boundaries: {
-        type: 'Polygon',
-        coordinates: [coordinates]
-      },
-      center: {
-        lng: centerLng,
-        lat: centerLat
-      }
-    };
-    
-    fetch('/api/v1/territories', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
-      },
-      body: JSON.stringify(territoryData)
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.id) {
-        alert('Territory created successfully');
-        
-        // Clear modal
-        const modal = document.getElementById('new-territory-modal');
-        const modalInstance = bootstrap.Modal.getInstance(modal);
-        modalInstance.hide();
-        
-        // Clear drawing map
-        drawnItems.clearLayers();
-        
-        // Clear form
-        document.getElementById('new-territory-form').reset();
-        
-        // Reload territories
-        loadTerritories();
-      }
-    })
-    .catch(error => console.error('Error:', error));
-  });
-  
-  // Function to draw general territory
-  function drawGeneralTerritory() {
-    // General territory coordinates (Van Buren, Inca, Río, Los Loros)
-    const generalTerritoryCoords = [
-      [-27.3650, -70.3350], // Van Buren (North)
-      [-27.3650, -70.3250], // Los Loros (West)
-      [-27.3680, -70.3250], // Inca (South)
-      [-27.3680, -70.3350], // Copiapó River (East)
-      [-27.3650, -70.3350]  // Close polygon
-    ];
-    
-    // Create general territory polygon
-    const generalTerritory = L.polygon(generalTerritoryCoords, {
-      color: '#dc3545',        // Red to highlight
-      fillColor: '#dc3545',    // Red fill
-      fillOpacity: 0.2,        // Semi-transparent
-      weight: 4                // Thick line
-    }).addTo(map);
-    
-    // Add street labels
-    L.marker([-27.3650, -70.3300]).bindPopup('<strong>Van Buren</strong><br>North Boundary').addTo(map);
-    L.marker([-27.3680, -70.3300]).bindPopup('<strong>Inca</strong><br>South Boundary').addTo(map);
-    L.marker([-27.3665, -70.3350]).bindPopup('<strong>Copiapó River</strong><br>East Boundary').addTo(map);
-    L.marker([-27.3665, -70.3250]).bindPopup('<strong>Los Loros Avenue</strong><br>West Boundary').addTo(map);
-    
-    // Add general territory label
-    generalTerritory.bindPopup(`
-      <div style="text-align: center;">
-        <h5><strong>General Work Territory</strong></h5>
-        <p><strong>Copiapó, Atacama Region</strong></p>
-        <hr>
-        <p><strong>Boundaries:</strong></p>
-        <ul style="text-align: left; padding-left: 20px;">
-          <li>North: Van Buren</li>
-          <li>South: Inca</li>
-          <li>East: Copiapó River</li>
-          <li>West: Los Loros Avenue</li>
-        </ul>
-        <button class="btn btn-sm btn-primary" onclick="printGeneralTerritory()">Print</button>
-      </div>
-    `);
-    
-    // Center map on general territory
-    map.fitBounds(generalTerritory.getBounds());
-  }
-  
-  // Function to print individual territories
-  function printTerritory(territoryId, territoryName) {
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>${territoryName} - Copiapó</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 20px; }
-          .header { text-align: center; margin-bottom: 30px; }
-          .map-container { width: 100%; height: 500px; margin: 20px 0; }
-          .info { margin: 20px 0; }
-          .boundaries { margin: 20px 0; }
-          @media print { .no-print { display: none; } }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>${territoryName}</h1>
-          <h2>Copiapó, Atacama Region, Chile</h2>
-          <p>Date: ${new Date().toLocaleDateString('en-US')}</p>
-        </div>
-        
-        <div class="info">
-          <h3>Territory Information:</h3>
-          <p><strong>ID:</strong> ${territoryId}</p>
-          <p><strong>Status:</strong> [Will be loaded from database]</p>
-          <p><strong>Area:</strong> [Will be calculated automatically]</p>
-        </div>
-        
-        <div class="map-container" id="print-map-${territoryId}"></div>
-        
-        <div class="no-print">
-          <button onclick="window.print()">Imprimir</button>
-          <button onclick="window.close()">Cerrar</button>
-        </div>
-      </body>
-      </html>
-    `);
-    
-    printWindow.document.close();
-    
-    // Here you could load specific territory data from the API
-    // and show the map with the specific polygon
-  }
-  
-  // Function to demarcate the main congregation zone
-  function demarcateMainTerritory() {
-    // Clear any existing main territory
-    if (window.mainTerritoryLayer) {
-      map.removeLayer(window.mainTerritoryLayer);
-    }
-    
-    // Create floating div for instructions
-    const instructionsDiv = document.createElement('div');
-    instructionsDiv.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      border: 2px solid #ffc107;
-      border-radius: 10px;
-      padding: 20px;
-      z-index: 1000;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-      max-width: 500px;
-      text-align: center;
-    `;
-    
-    instructionsDiv.innerHTML = `
-      <h4>🗺️ Demarcate Main Zone</h4>
-      <div style="margin: 15px 0; text-align: left;">
-        <p><strong>Instructions:</strong></p>
-        <p>1. Click on the map to mark boundary points</p>
-        <p>2. Follow the route: Van Buren → Los Loros → Inca → Cerro → Río</p>
-        <p>3. Click "Close Polygon" when finished</p>
-        <p>4. Click "Save Main Zone" to save</p>
-      </div>
-      <button onclick="startDemarcation()" class="btn btn-primary" style="margin: 5px;">🚀 Start</button>
-      <button onclick="closeInstructions()" class="btn btn-secondary" style="margin: 5px;">❌ Cancel</button>
-    `;
-    
-    document.body.appendChild(instructionsDiv);
-    window.instructionsDiv = instructionsDiv;
-  }
-  
-  // Function to close instructions
-  function closeInstructions() {
-    if (window.instructionsDiv) {
-      document.body.removeChild(window.instructionsDiv);
-      window.instructionsDiv = null;
-    }
-  }
-  
-  // Function to start demarcation
-  function startDemarcation() {
-    closeInstructions();
-    
-         // Activate demarcation mode on main map
-     window.demarcationMode = true;
-     window.demarcationPoints = [];
-     window.demarcationPolygon = null;
-     
-     // Change map cursor
-     map.getContainer().style.cursor = 'crosshair';
-     
-     // Disable map dragging
-     map.dragging.disable();
-     map.scrollWheelZoom.disable();
-    
-         // Show message on map
-     const infoDiv = document.createElement('div');
-     infoDiv.style.cssText = `
-       position: absolute;
-       top: 10px;
-       left: 50%;
-       transform: translateX(-50%);
-       background: #ffc107;
-       color: black;
-       padding: 10px 20px;
-       border-radius: 5px;
-       z-index: 1000;
-       font-weight: bold;
-       text-align: center;
-       max-width: 300px;
-     `;
-     
-     const isEditing = window.mainTerritoryLayer !== null;
-     infoDiv.innerHTML = isEditing ? 
-       '✏️ <strong>Edit Mode:</strong><br>Click to mark new points, double click to close' :
-       '🗺️ <strong>Demarcation Mode:</strong><br>Click to mark points';
-    map.getContainer().appendChild(infoDiv);
-    window.infoDiv = infoDiv;
-    
-         // Click event to mark points
-     map.off('click.demarcation');
-     map.on('click.demarcation', function(e) {
-       console.log('Click detected in demarcation mode');
-       
-                // Prevent event propagation
-       e.originalEvent.preventDefault();
-       e.originalEvent.stopPropagation();
-       
-       const latlng = e.latlng;
-       window.demarcationPoints.push(latlng);
-       
-       // Add marker
-       const marker = L.marker(latlng).addTo(map);
-       marker.bindPopup(`Point ${window.demarcationPoints.length}`);
-       
-       // Draw line if more than one point
-       if (window.demarcationPoints.length > 1) {
-         if (window.demarcationPolygon) {
-           map.removeLayer(window.demarcationPolygon);
-         }
-         window.demarcationPolygon = L.polygon(window.demarcationPoints, {
-           color: '#ffc107',
-           fillColor: '#ffc107',
-           fillOpacity: 0.3,
-           weight: 3
-         }).addTo(map);
-       }
-       
-       console.log('Point marked:', latlng, 'Total points:', window.demarcationPoints.length);
-       
-       // Update counter in button
-       if (window.manualCloseDiv) {
-         window.manualCloseDiv.querySelector('strong').textContent = `Puntos marcados: ${window.demarcationPoints.length}`;
-       }
-     });
-     
-     // Add DOM event as backup
-     const mapContainer = map.getContainer();
-     window.demarcationClickHandler = function(e) {
-       if (window.demarcationMode) {
-         console.log('DOM click detected in demarcation mode');
-         
-         // Prevent default behavior
-         e.preventDefault();
-         e.stopPropagation();
-         
-         const rect = mapContainer.getBoundingClientRect();
-         const x = e.clientX - rect.left;
-         const y = e.clientY - rect.top;
-         const latlng = map.containerPointToLatLng([x, y]);
-         
-         if (latlng) {
-           window.demarcationPoints.push(latlng);
-           
-           // Add marker
-           const marker = L.marker(latlng).addTo(map);
-           marker.bindPopup(`Point ${window.demarcationPoints.length}`);
-           
-           // Draw line if more than one point
-           if (window.demarcationPoints.length > 1) {
-             if (window.demarcationPolygon) {
-               map.removeLayer(window.demarcationPolygon);
-             }
-             window.demarcationPolygon = L.polygon(window.demarcationPoints, {
-               color: '#ffc107',
-               fillColor: '#ffc107',
-               fillOpacity: 0.3,
-               weight: 3
-             }).addTo(map);
-           }
-           
-           console.log('Point marked (DOM):', latlng, 'Total points:', window.demarcationPoints.length);
-           
-           // Update counter in button
-           if (window.manualCloseDiv) {
-             window.manualCloseDiv.querySelector('strong').textContent = `Points marked: ${window.demarcationPoints.length}`;
-           }
-         }
-       }
-     };
-     
-     mapContainer.addEventListener('click', window.demarcationClickHandler);
-    
-         // Disable double click to avoid conflicts
-     map.off('dblclick.demarcation');
-     
-     // Add manual button to close polygon
-     const manualCloseDiv = document.createElement('div');
-     manualCloseDiv.style.cssText = `
-       position: absolute;
-       top: 60px;
-       right: 10px;
-       z-index: 1000;
-       background: white;
-       padding: 10px;
-       border-radius: 8px;
-       box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-     `;
-     manualCloseDiv.innerHTML = `
-       <div style="text-align: center; margin-bottom: 10px;">
-         <strong>Points marked: ${window.demarcationPoints.length}</strong>
-       </div>
-       <button onclick="manualClosePolygon()" class="btn btn-success btn-sm" style="width: 100%; margin-top: 5px;">
-         🔒 Close Polygon
-       </button>
-       <button onclick="clearDemarcation()" class="btn btn-warning btn-sm" style="width: 100%; margin-top: 5px;">
-         🗑️ Clear All
-       </button>
-     `;
-     map.getContainer().appendChild(manualCloseDiv);
-     window.manualCloseDiv = manualCloseDiv;
-  }
-  
-  // Función para cerrar manualmente el polígono
-  function manualClosePolygon() {
-    console.log('Cerrando polígono manualmente');
-    if (window.demarcationPoints.length >= 3) {
-      // Cerrar el polígono
-      window.demarcationPoints.push(window.demarcationPoints[0]);
-      
-      if (window.demarcationPolygon) {
-        map.removeLayer(window.demarcationPolygon);
-      }
-      
-      window.demarcationPolygon = L.polygon(window.demarcationPoints, {
-        color: '#28a745',
-        fillColor: '#28a745',
-        fillOpacity: 0.3,
-        weight: 3
-      }).addTo(map);
-      
-      // Mostrar botones de acción
-      const saveDiv = document.createElement('div');
-      saveDiv.style.cssText = `
-        position: absolute;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 1000;
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        text-align: center;
-      `;
-      saveDiv.innerHTML = `
-        <h5 style="margin-bottom: 15px;">🎯 Polygon Closed</h5>
-        <p style="margin-bottom: 15px;">Points marked: <strong>${window.demarcationPoints.length - 1}</strong></p>
-        <button onclick="saveMainTerritory()" class="btn btn-success btn-lg me-2">
-          💾 Save Main Zone
-        </button>
-        <button onclick="clearDemarcation()" class="btn btn-warning btn-lg me-2">
-          🗑️ Clear All
-        </button>
-        <button onclick="cancelDemarcation()" class="btn btn-secondary btn-lg">
-          ❌ Cancel
-        </button>
-      `;
-      map.getContainer().appendChild(saveDiv);
-      window.saveDiv = saveDiv;
-      
-      // Deactivate demarcation mode
-      window.demarcationMode = false;
-      map.getContainer().style.cursor = '';
-      map.off('click.demarcation');
-      
-      // Enable map dragging
-      map.dragging.enable();
-      map.scrollWheelZoom.enable();
-      
-      // Hide manual button
-      if (window.manualCloseDiv) {
-        map.getContainer().removeChild(window.manualCloseDiv);
-        window.manualCloseDiv = null;
-      }
-      
-      // Clean DOM event
-      if (window.demarcationClickHandler) {
-        const mapContainer = map.getContainer();
-        mapContainer.removeEventListener('click', window.demarcationClickHandler);
-        window.demarcationClickHandler = null;
-      }
-      
-      console.log('✅ Polygon closed successfully');
-    } else {
-      alert('❌ You need at least 3 points to close the polygon');
-    }
-  }
-  
-  // Function to cancel demarcation
-  function cancelDemarcation() {
-    clearDemarcation();
-    
-    // If editing, restore previous territory
-    if (window.mainTerritoryLayer && window.mainTerritoryPoints) {
-      const coordinates = window.mainTerritoryPoints.map(point => [point.lat, point.lng]);
-      window.mainTerritoryLayer = L.polygon(coordinates, {
-        color: '#ffc107',
-        fillColor: '#ffc107',
-        fillOpacity: 0.2,
-        weight: 4
-      }).addTo(map);
-      
-      // Add popup with information
-      window.mainTerritoryLayer.bindPopup(`
-        <h6>🏛️ Main Congregation Zone</h6>
-        <p><strong>Points:</strong> ${coordinates.length - 1}</p>
-        <p><strong>Status:</strong> Main Zone</p>
-        <button class="btn btn-sm btn-primary" onclick="printMainTerritory()">Print</button>
-      `);
-    }
-  }
-  
-  // Function to clear demarcation
-  function clearDemarcation() {
-    if (window.demarcationPolygon) {
-      map.removeLayer(window.demarcationPolygon);
-      window.demarcationPolygon = null;
-    }
-    
-    // Clear markers
-    map.eachLayer((layer) => {
-      if (layer instanceof L.Marker) {
-        map.removeLayer(layer);
-      }
-    });
-    
-    window.demarcationPoints = [];
-    
-         // Clear UI elements
-     if (window.infoDiv) {
-       map.getContainer().removeChild(window.infoDiv);
-       window.infoDiv = null;
-     }
-     if (window.saveDiv) {
-       map.getContainer().removeChild(window.saveDiv);
-       window.saveDiv = null;
-     }
-     if (window.manualCloseDiv) {
-       map.getContainer().removeChild(window.manualCloseDiv);
-       window.manualCloseDiv = null;
-     }
-     
-     map.getContainer().style.cursor = '';
-     
-     // Enable map dragging
-     map.dragging.enable();
-     map.scrollWheelZoom.enable();
-     
-     // Clear Leaflet events
-     map.off('click.demarcation');
-     
-     // Clear DOM event
-     if (window.demarcationClickHandler) {
-       const mapContainer = map.getContainer();
-       mapContainer.removeEventListener('click', window.demarcationClickHandler);
-       window.demarcationClickHandler = null;
-     }
-  }
-  
-  // Function to save main zone
-  function saveMainTerritory() {
-    if (!window.demarcationPoints || window.demarcationPoints.length < 4) {
-      alert('Please draw a valid polygon with at least 3 points');
-      return;
-    }
-    
-    // Create main territory on main map
-    const coordinates = window.demarcationPoints.map(point => [point.lat, point.lng]);
-    
-    if (window.mainTerritoryLayer) {
-      map.removeLayer(window.mainTerritoryLayer);
-    }
-    
-    window.mainTerritoryLayer = L.polygon(coordinates, {
-      color: '#ffc107',
-      fillColor: '#ffc107',
-      fillOpacity: 0.2,
-      weight: 4
-    }).addTo(map);
-    
-    // Add popup with information
-    window.mainTerritoryLayer.bindPopup(`
-      <h6>🏛️ Main Congregation Zone</h6>
-      <p><strong>Points:</strong> ${coordinates.length - 1}</p>
-      <p><strong>Status:</strong> Main Zone</p>
-      <button class="btn btn-sm btn-primary" onclick="printMainTerritory()">Print</button>
-    `);
-    
-    // Clear demarcation UI elements
-    if (window.infoDiv) {
-      map.getContainer().removeChild(window.infoDiv);
-      window.infoDiv = null;
-    }
-    if (window.saveDiv) {
-      map.getContainer().removeChild(window.saveDiv);
-      window.saveDiv = null;
-    }
-    
-    // Clear demarcation markers
-    map.eachLayer((layer) => {
-      if (layer instanceof L.Marker) {
-        map.removeLayer(layer);
-      }
-    });
-    
-         // Save points for printing
-     window.mainTerritoryPoints = window.demarcationPoints;
-     
-     // Show main territory controls
-     document.getElementById('main-territory-controls').style.display = 'block';
-     
-     alert('✅ Main zone demarcated successfully. Now you can create smaller territories within it.');
-  }
-  
-  // Function to edit main territory
-  function editMainTerritory() {
-    if (!window.mainTerritoryLayer) {
-      alert('No main zone to edit');
-      return;
-    }
-    
-    // Hide controls
-    document.getElementById('main-territory-controls').style.display = 'none';
-    
-    // Remove current territory
-    map.removeLayer(window.mainTerritoryLayer);
-    window.mainTerritoryLayer = null;
-    
-    // Start edit mode
-    startDemarcation();
-  }
-  
-  // Function to delete main territory
-  function deleteMainTerritory() {
-    if (!window.mainTerritoryLayer) {
-      alert('No main zone to delete');
-      return;
-    }
-    
-    if (confirm('Are you sure you want to delete the main zone?')) {
-      // Remove from map
-      map.removeLayer(window.mainTerritoryLayer);
-      window.mainTerritoryLayer = null;
-      window.mainTerritoryPoints = null;
-      
-      // Hide controls
-      document.getElementById('main-territory-controls').style.display = 'none';
-      
-      alert('Main zone deleted');
-    }
-  }
-  
-  // Function to print main territory
-  function printMainTerritory() {
-    if (!window.mainTerritoryPoints) {
-      alert('No main zone demarcated');
-      return;
-    }
-    
-    const printWindow = window.open('', '_blank');
-    const coordinates = window.mainTerritoryPoints.map(point => [point.lat, point.lng]);
-    
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Main Zone - Copiapó Congregation</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 20px; }
-          .header { text-align: center; margin-bottom: 30px; }
-          .map-container { width: 100%; height: 500px; margin: 20px 0; }
-          .info { margin: 20px 0; }
-          @media print { .no-print { display: none; } }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>🏛️ Main Congregation Zone</h1>
-          <h2>Copiapó, Atacama Region, Chile</h2>
-          <p>Date: ${new Date().toLocaleDateString('en-US')}</p>
-        </div>
-        
-        <div class="info">
-          <h3>Zone Information:</h3>
-          <p><strong>Polygon points:</strong> ${coordinates.length - 1}</p>
-          <p><strong>Coordinates:</strong></p>
-          <ul>
-            ${coordinates.slice(0, -1).map((coord, i) => 
-              `<li>Point ${i + 1}: ${coord[0].toFixed(6)}° S, ${coord[1].toFixed(6)}° W</li>`
-            ).join('')}
-          </ul>
-        </div>
-        
-        <div class="map-container" id="print-main-map"></div>
-        
-        <div class="no-print">
-          <button onclick="window.print()">Imprimir</button>
-          <button onclick="window.close()">Cerrar</button>
-        </div>
-      </body>
-      </html>
-    `);
-    
-    printWindow.document.close();
-    
-    setTimeout(() => {
-      const printMap = L.map(printWindow.document.getElementById('print-main-map')).setView([-27.3668, -70.3314], 16);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      }).addTo(printMap);
-      
-      L.polygon(coordinates, {
-        color: '#ffc107',
-        fillColor: '#ffc107',
-        fillOpacity: 0.3,
-        weight: 4
-      }).addTo(printMap);
-    }, 100);
-  }
-  
-  // Function to print general territory
-  function printGeneralTerritory() {
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>General Territory - Copiapó</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 20px; }
-          .header { text-align: center; margin-bottom: 30px; }
-          .map-container { width: 100%; height: 500px; margin: 20px 0; }
-          .info { margin: 20px 0; }
-          .boundaries { margin: 20px 0; }
-          @media print { .no-print { display: none; } }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>General Work Territory</h1>
-          <h2>Copiapó, Atacama Region, Chile</h2>
-          <p>Date: ${new Date().toLocaleDateString('en-US')}</p>
-        </div>
-        
-        <div class="info">
-          <h3>Boundaries:</h3>
-          <ul>
-            <li><strong>North:</strong> Van Buren Street</li>
-            <li><strong>South:</strong> Inca Street</li>
-            <li><strong>East:</strong> Copiapó River</li>
-            <li><strong>West:</strong> Los Loros Avenue</li>
-          </ul>
-        </div>
-        
-        <div class="map-container" id="print-map"></div>
-        
-        <div class="boundaries">
-          <h3>Territory Coordinates:</h3>
-          <p>Center: -27.3665° S, -70.3300° W</p>
-          <p>Approximate area: [Will be calculated automatically]</p>
-        </div>
-        
-        <div class="no-print">
-          <button onclick="window.print()">Imprimir</button>
-          <button onclick="window.close()">Cerrar</button>
-        </div>
-      </body>
-      </html>
-    `);
-    
-    // Add map to print document
-    printWindow.document.close();
-    
-    // Wait for it to load and then add the map
-    setTimeout(() => {
-      const printMap = L.map(printWindow.document.getElementById('print-map')).setView([-27.3665, -70.3300], 16);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      }).addTo(printMap);
-      
-      // Add general territory
-      const generalTerritory = L.polygon([
-        [-27.3650, -70.3350],
-        [-27.3650, -70.3250],
-        [-27.3680, -70.3250],
-        [-27.3680, -70.3350]
-      ], {
-        color: '#28a745',
-        fillColor: '#28a745',
-        fillOpacity: 0.3,
-        weight: 3
-      }).addTo(printMap);
-      
-      // Add street labels
-      L.marker([-27.3650, -70.3300]).bindPopup('Van Buren Street').addTo(printMap);
-      L.marker([-27.3680, -70.3300]).bindPopup('Inca Street').addTo(printMap);
-      L.marker([-27.3665, -70.3350]).bindPopup('Copiapó River').addTo(printMap);
-      L.marker([-27.3665, -70.3250]).bindPopup('Los Loros Avenue').addTo(printMap);
-    }, 100);
-  }
-</script>

@@ -45,6 +45,6 @@ class TerritoriesController < ApplicationController
   end
 
   def territory_params
-    params.require(:territory).permit(:name, :description, :status, :assigned_to_id, :boundaries, :center)
+    params.require(:territory).permit(:name, :description, :status, :assigned_to_id, :boundaries, :center, :congregation_id, :number)
   end
 end
