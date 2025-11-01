@@ -1,4 +1,4 @@
-<div class="container-fluid" data-controller="hello territories--map territories--congregation territories--territory-list territories--territory-map">
+<div class="container-fluid" data-controller="hello territories--map territories--congregation territories--territory-list territories--territory-map territories--main-territory">
   <div class="row">
     <div class="col-md-3 sidebar">
       <div class="sidebar-content">
@@ -37,25 +37,35 @@
         </div>
         
         <div class="mt-3">
-          <button class="btn btn-warning mb-2" onclick="demarcateMainTerritory()" style="width: 100%;" id="demarcate-main-btn">
-            🗺️ Demarcate Main Congregation Zone
+          <button class="btn btn-warning mb-2" 
+                  style="width: 100%;" 
+                  id="demarcate-main-btn"
+                  data-territories--main-territory-target="demarcateBtn"
+                  data-action="click->territories--main-territory#startDemarcation">
+            🗺️ Demarcar Zona Principal de la Congregación
           </button>
           
           <!-- Main Territory Controls -->
-          <div id="main-territory-controls" style="display: none;" class="mb-3 p-3 border rounded bg-light">
+          <div id="main-territory-controls" 
+               style="display: none;" 
+               class="mb-3 p-3 border rounded bg-light"
+               data-territories--main-territory-target="controls">
             <h6 class="text-center mb-3">🏛️ <span id="congregation-name-label" 
                                                     data-territories--congregation-target="nameLabel">Zona Principal</span></h6>
-            <button class="btn btn-success btn-sm w-100 mb-2" onclick="saveMainTerritory()">
-              💾 Save <span id="btn-save-name">Main Zone</span>
+            <button class="btn btn-success btn-sm w-100 mb-2" 
+                    data-action="click->territories--main-territory#save">
+              💾 Guardar <span id="btn-save-name">Zona Principal</span>
             </button>
-            <button class="btn btn-primary btn-sm w-100 mb-2" onclick="editMainTerritory()">
-              ✏️ Edit <span id="btn-edit-name">Main Zone</span>
+            <button class="btn btn-primary btn-sm w-100 mb-2" 
+                    data-action="click->territories--main-territory#edit">
+              ✏️ Editar <span id="btn-edit-name">Zona Principal</span>
             </button>
             <button class="btn btn-info btn-sm w-100 mb-2" onclick="printMainTerritory()">
-              🖨️ Print <span id="btn-print-name">Main Zone</span>
+              🖨️ Imprimir <span id="btn-print-name">Zona Principal</span>
             </button>
-            <button class="btn btn-danger btn-sm w-100" onclick="deleteMainTerritory()">
-              🗑️ Delete <span id="btn-delete-name">Main Zone</span>
+            <button class="btn btn-danger btn-sm w-100" 
+                    data-action="click->territories--main-territory#delete">
+              🗑️ Eliminar <span id="btn-delete-name">Zona Principal</span>
             </button>
           </div>
           
