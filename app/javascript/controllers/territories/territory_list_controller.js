@@ -65,15 +65,80 @@ export default class extends Controller {
       </div>
     `
     
-    // Add click handler to center map on territory
+    // Add click handler to show territory detail modal
     item.addEventListener('click', (e) => {
       // Don't trigger if clicking the button
       if (e.target.tagName === 'BUTTON') return
       
-      this.centerOnTerritory(territory)
+      this.showTerritoryMapModal(territory)
     })
     
     return item
+  }
+  
+  async showTerritoryMapModal(territory) {
+    const properties = territory.properties
+    
+    // Update modal title
+    const title = `${properties.number ? `#${properties.number} - ` : ''}${properties.name}`
+    document.getElementById('territoryDetailTitle').textContent = title
+    
+    // Hide the info section, only show map
+    document.getElementById('territoryDetailInfo').parentElement.classList.add('d-none')
+    document.querySelector('#territoryDetailMap').parentElement.classList.remove('col-md-6')
+    document.querySelector('#territoryDetailMap').parentElement.classList.add('col-12')
+    
+    // Update map to full height
+    document.getElementById('territoryDetailMap').style.height = '500px'
+    
+    // Store territory ID for print button
+    window.currentDetailTerritoryId = properties.id
+    window.currentDetailTerritoryName = properties.name
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('territoryDetailModal'))
+    modal.show()
+    
+    // Initialize map after modal is shown
+    document.getElementById('territoryDetailModal').addEventListener('shown.bs.modal', async () => {
+      await this.initTerritoryMap(properties)
+    }, { once: true })
+  }
+  
+  async initTerritoryMap(properties) {
+    // Remove existing map if any
+    const mapContainer = document.getElementById('territoryDetailMap')
+    mapContainer.innerHTML = ''
+    
+    // Create new map
+    const detailMap = L.map('territoryDetailMap')
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(detailMap)
+    
+    // Fetch territory geometry from API
+    try {
+      const response = await fetch(`/api/v1/territories/${properties.id}`)
+      const territory = await response.json()
+      
+      const coordinates = territory.geometry.coordinates[0].map(c => [c[1], c[0]])
+      
+      // Draw polygon with thicker border
+      const polygon = L.polygon(coordinates, {
+        color: '#000',
+        fillColor: '#4CAF50',
+        fillOpacity: 0.3,
+        weight: 3
+      }).addTo(detailMap)
+      
+      // Fit map to polygon with good zoom
+      detailMap.fitBounds(polygon.getBounds(), { padding: [30, 30], maxZoom: 18 })
+      
+    } catch (error) {
+      console.error('Error loading territory details:', error)
+      mapContainer.innerHTML = '<p class="text-danger">Error al cargar el mapa</p>'
+    }
   }
   
   centerOnTerritory(territory) {
