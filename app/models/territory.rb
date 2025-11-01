@@ -23,7 +23,8 @@ class Territory < ApplicationRecord
   # Métodos geoespaciales
   def area_in_sq_meters
     return nil unless boundaries
-    RGeo::Geos.factory(srid: 4326).parse_wkt(boundaries).area
+    # boundaries is already an RGeo geometry object
+    boundaries.area
   end
   
   def area_in_acres
