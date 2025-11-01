@@ -87,6 +87,11 @@ export default class extends Controller {
                              window.congregationsById[String(window.currentCongregationId)]) || 
                              'Zona Principal de la Congregación'
     
+    // Build coordinates HTML
+    const coordinatesHtml = coordinates.slice(0, -1)
+      .map((c, i) => `Punto ${i+1}: ${c[0].toFixed(6)}, ${c[1].toFixed(6)}`)
+      .join('<br>')
+    
     const printWindow = window.open('', '_blank')
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -139,7 +144,7 @@ export default class extends Controller {
         
         <div class="coordinates">
           <h4>Coordenadas:</h4>
-          <p>${coordinates.slice(0, -1).map((c, i) => \`Punto \${i+1}: \${c[0].toFixed(6)}, \${c[1].toFixed(6)}\`).join('<br>')}</p>
+          <p>${coordinatesHtml}</p>
         </div>
         
         <div class="no-print" style="text-align: center; margin-top: 20px;">
