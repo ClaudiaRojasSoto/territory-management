@@ -81,9 +81,12 @@ export default class extends Controller {
             }
             
             @media print {
-              body {
-                margin: 0;
-                padding: 0;
+              html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                height: 100vh !important;
+                width: 100vw !important;
+                overflow: hidden !important;
               }
               .no-print { 
                 display: none !important; 
@@ -98,9 +101,10 @@ export default class extends Controller {
                 padding: 0 !important;
                 border: none !important;
                 page-break-inside: avoid;
-                position: absolute;
-                top: 0;
-                left: 0;
+                page-break-after: avoid;
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
               }
             }
           </style>
@@ -234,8 +238,35 @@ export default class extends Controller {
             font-size: 12px; 
             margin: 10px 0; 
           }
-          @media print { 
-            .no-print { display: none; } 
+          @media print {
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              height: 100vh !important;
+              width: 100vw !important;
+              overflow: hidden !important;
+            }
+            .no-print { 
+              display: none !important; 
+            }
+            .header {
+              display: none !important;
+            }
+            .info {
+              display: none !important;
+            }
+            .map-container {
+              height: 100vh !important;
+              width: 100vw !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              border: none !important;
+              page-break-inside: avoid;
+              page-break-after: avoid;
+              position: fixed !important;
+              top: 0 !important;
+              left: 0 !important;
+            }
           }
         </style>
       </head>
@@ -371,8 +402,35 @@ export default class extends Controller {
           .info { 
             margin: 20px 0; 
           }
-          @media print { 
-            .no-print { display: none; } 
+          @media print {
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              height: 100vh !important;
+              width: 100vw !important;
+              overflow: hidden !important;
+            }
+            .no-print { 
+              display: none !important; 
+            }
+            .header {
+              display: none !important;
+            }
+            .info {
+              display: none !important;
+            }
+            .map-container {
+              height: 100vh !important;
+              width: 100vw !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              border: none !important;
+              page-break-inside: avoid;
+              page-break-after: avoid;
+              position: fixed !important;
+              top: 0 !important;
+              left: 0 !important;
+            }
           }
         </style>
       </head>
