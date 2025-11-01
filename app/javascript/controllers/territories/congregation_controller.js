@@ -38,13 +38,19 @@ export default class extends Controller {
     placeholder.textContent = 'Seleccionar congregación'
     select.appendChild(placeholder)
     
-    // Filter and process congregations
-    const features = (data || []).filter(feature => feature && feature.geometry)
+    // Process ALL congregations (not just those with geometry)
+    const features = (data || []).filter(feature => feature && feature.properties)
     
     features.forEach(feature => {
       const opt = document.createElement('option')
       opt.value = feature.properties.id
       opt.textContent = feature.properties.name
+      
+      // Add visual indicator if congregation has no geometry yet
+      if (!feature.geometry) {
+        opt.textContent += ' (sin demarcar)'
+      }
+      
       select.appendChild(opt)
       
       // Store congregation data

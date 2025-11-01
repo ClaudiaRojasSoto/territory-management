@@ -370,9 +370,21 @@ export default class extends Controller {
       alert('✅ Zona principal guardada exitosamente')
       this.clearDemarcation()
       
-      // Reload congregation polygon
-      if (typeof loadMainCongregationPolygon === 'function') {
-        loadMainCongregationPolygon()
+      // Reload congregation data and polygon through congregation controller
+      const congregationElement = document.querySelector('[data-controller~="territories--congregation"]')
+      if (congregationElement) {
+        const congregationController = this.application.getControllerForElementAndIdentifier(
+          congregationElement,
+          'territories--congregation'
+        )
+        if (congregationController) {
+          // Reload all congregations to update the list
+          await congregationController.loadCongregations()
+          // Then reload the polygon for the current congregation
+          if (congregationController.loadPolygon) {
+            await congregationController.loadPolygon()
+          }
+        }
       }
     } catch (error) {
       console.error('Error saving main territory:', error)
@@ -422,6 +434,18 @@ export default class extends Controller {
       if (window.mainTerritoryLayer) {
         map.removeLayer(window.mainTerritoryLayer)
         window.mainTerritoryLayer = null
+      }
+      
+      // Reload congregation list to update status
+      const congregationElement = document.querySelector('[data-controller~="territories--congregation"]')
+      if (congregationElement) {
+        const congregationController = this.application.getControllerForElementAndIdentifier(
+          congregationElement,
+          'territories--congregation'
+        )
+        if (congregationController && congregationController.loadCongregations) {
+          await congregationController.loadCongregations()
+        }
       }
       
       // Hide controls
