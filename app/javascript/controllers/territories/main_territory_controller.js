@@ -386,7 +386,7 @@ export default class extends Controller {
     const centerLng = this.demarcationPoints.reduce((sum, p) => sum + p.lng, 0) / this.demarcationPoints.length
     
     const data = {
-      geometry: {
+      boundaries: {
         type: 'Polygon',
         coordinates: [coordinates]
       },
@@ -484,7 +484,7 @@ export default class extends Controller {
     
     try {
       await apiClient.patch(`/congregations/${window.currentCongregationId}`, {
-        geometry: null,
+        boundaries: null,
         center: null
       })
       
