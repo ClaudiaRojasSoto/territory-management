@@ -120,6 +120,7 @@ export default class extends Controller {
                 border: 2px solid #000 !important;
                 page-break-inside: avoid;
                 page-break-after: avoid;
+                overflow: hidden !important;
               }
             }
           </style>
@@ -169,7 +170,7 @@ export default class extends Controller {
                 weight: 0
               }).addTo(printMap);
               
-              printMap.fitBounds(polygon.getBounds(), { padding: [5, 5], maxZoom: 19 });
+              printMap.fitBounds(polygon.getBounds(), { padding: [10, 10], maxZoom: 18 });
             };
           <\/script>
         </body>
@@ -304,6 +305,7 @@ export default class extends Controller {
               border: 2px solid #ffc107 !important;
               page-break-inside: avoid;
               page-break-after: avoid;
+              overflow: hidden !important;
             }
           }
         </style>
@@ -369,7 +371,7 @@ export default class extends Controller {
               weight: 0
             }).addTo(printMap);
             
-            printMap.fitBounds(polygon.getBounds(), { padding: [30, 30], maxZoom: 19 });
+            printMap.fitBounds(polygon.getBounds(), { padding: [20, 20], maxZoom: 18 });
           };
         <\/script>
       </body>
@@ -486,6 +488,7 @@ export default class extends Controller {
               border: 2px solid #28a745 !important;
               page-break-inside: avoid;
               page-break-after: avoid;
+              overflow: hidden !important;
             }
           }
         </style>
@@ -544,7 +547,7 @@ export default class extends Controller {
               weight: 0
             }).addTo(printMap);
             
-            printMap.fitBounds(polygon.getBounds(), { padding: [30, 30], maxZoom: 19 });
+            printMap.fitBounds(polygon.getBounds(), { padding: [20, 20], maxZoom: 18 });
           };
         <\/script>
       </body>
