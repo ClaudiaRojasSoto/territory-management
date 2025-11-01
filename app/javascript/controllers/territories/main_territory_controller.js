@@ -394,8 +394,20 @@ export default class extends Controller {
     }
     
     try {
+      console.log("=== SAVING POLYGON ===")
+      console.log("Data being sent:", data)
+      console.log("Coordinates count:", coordinates.length)
+      console.log("First coordinate:", coordinates[0])
+      console.log("Last coordinate:", coordinates[coordinates.length - 1])
+      
       const updatedFeature = await apiClient.patch(`/congregations/${window.currentCongregationId}`, data)
-      console.log("Save response (updated feature):", updatedFeature)
+      console.log("=== SAVE RESPONSE ===")
+      console.log("Full response:", JSON.stringify(updatedFeature, null, 2))
+      console.log("Has geometry?", !!updatedFeature.geometry)
+      if (updatedFeature.geometry) {
+        console.log("Response geometry:", updatedFeature.geometry)
+        console.log("Response coordinates:", updatedFeature.geometry.coordinates)
+      }
       
       // Store current ID before clearing
       const currentId = window.currentCongregationId
@@ -417,7 +429,8 @@ export default class extends Controller {
           'territories--congregation'
         )
         if (congregationController) {
-          console.log("Rendering updated polygon directly from save response")
+          console.log("=== RENDERING POLYGON ===")
+          console.log("Current ID:", currentId)
           
           // Set current ID
           congregationController.currentIdValue = currentId
@@ -425,10 +438,11 @@ export default class extends Controller {
           
           // Render the polygon directly from the API response (fresh data!)
           if (updatedFeature && updatedFeature.geometry) {
+            console.log("Rendering polygon from response...")
             congregationController.renderPolygon(updatedFeature)
-            console.log("Polygon rendered with fresh geometry from save")
+            console.log("✅ Polygon rendered")
           } else {
-            console.warn("No geometry in response, falling back to reload")
+            console.warn("⚠️ No geometry in response, falling back to reload")
             await congregationController.loadPolygon()
           }
         }
