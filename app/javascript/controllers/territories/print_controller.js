@@ -9,47 +9,122 @@ export default class extends Controller {
     window.printGeneralTerritory = () => this.printGeneralTerritory()
   }
   
-  printTerritory(territoryId, territoryName) {
-    const printWindow = window.open('', '_blank')
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>${territoryName} - Copiapó</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 20px; }
-          .header { text-align: center; margin-bottom: 30px; }
-          .map-container { width: 100%; height: 500px; margin: 20px 0; }
-          .info { margin: 20px 0; }
-          .boundaries { margin: 20px 0; }
-          @media print { .no-print { display: none; } }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>${territoryName}</h1>
-          <h2>Copiapó, Región de Atacama, Chile</h2>
-          <p>Fecha: ${new Date().toLocaleDateString('es-CL')}</p>
-        </div>
-        
-        <div class="info">
-          <h3>Información del Territorio:</h3>
-          <p><strong>ID:</strong> ${territoryId}</p>
-          <p><strong>Estado:</strong> [Se cargará desde la base de datos]</p>
-          <p><strong>Área:</strong> [Se calculará automáticamente]</p>
-        </div>
-        
-        <div class="map-container" id="print-map-${territoryId}"></div>
-        
-        <div class="no-print">
-          <button onclick="window.print()">Imprimir</button>
-          <button onclick="window.close()">Cerrar</button>
-        </div>
-      </body>
-      </html>
-    `)
-    
-    printWindow.document.close()
+  async printTerritory(territoryId, territoryName) {
+    try {
+      // Load territory data from API
+      const response = await fetch(`/api/v1/territories/${territoryId}`)
+      if (!response.ok) {
+        throw new Error('Failed to load territory data')
+      }
+      
+      const territory = await response.json()
+      const coordinates = territory.geometry.coordinates[0].map(c => [c[1], c[0]])
+      
+      if (!coordinates || coordinates.length === 0) {
+        alert('No hay coordenadas para este territorio')
+        return
+      }
+      
+      const congregationName = (window.congregationsById && 
+                              window.currentCongregationId && 
+                              window.congregationsById[String(window.currentCongregationId)]) || 
+                              'Congregación'
+      
+      const printWindow = window.open('', '_blank')
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${territoryName} - ${congregationName}</title>
+          <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+          <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
+          <style>
+            @page {
+              margin: 0.3cm;
+            }
+            body {
+              margin: 0;
+              padding: 0;
+              height: 100vh;
+              overflow: hidden;
+            }
+            .no-print { 
+              display: none !important; 
+            }
+            .header {
+              display: none !important;
+            }
+            .info {
+              display: none !important;
+            }
+            .coordinates {
+              display: none !important;
+            }
+            .map-container {
+              height: 100vh !important;
+              width: 100vw !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              border: none !important;
+              page-break-inside: avoid;
+              position: absolute;
+              top: 0;
+              left: 0;
+            }
+          </style>
+        </head>
+        <body>
+          <div id="print-map" class="map-container"></div>
+          
+          <div class="no-print" style="text-align: center; margin-top: 20px;">
+            <button onclick="window.print()" style="padding: 10px 20px; margin: 5px;">🖨️ Imprimir</button>
+            <button onclick="window.close()" style="padding: 10px 20px; margin: 5px;">❌ Cerrar</button>
+          </div>
+          
+          <script>
+            window.onload = function() {
+              const coords = ${JSON.stringify(coordinates)};
+              const printMap = L.map('print-map').setView([${coordinates[0][0]}, ${coordinates[0][1]}], 14);
+              
+              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+              }).addTo(printMap);
+              
+              const polygon = L.polygon(coords, {
+                color: '#000',
+                fillColor: 'transparent',
+                fillOpacity: 0,
+                weight: 3
+              }).addTo(printMap);
+              
+              const bounds = printMap.getBounds();
+              const worldBounds = [
+                [bounds.getSouth() - 1, bounds.getWest() - 1],
+                [bounds.getSouth() - 1, bounds.getEast() + 1],
+                [bounds.getNorth() + 1, bounds.getEast() + 1],
+                [bounds.getNorth() + 1, bounds.getWest() - 1],
+                [bounds.getSouth() - 1, bounds.getWest() - 1]
+              ];
+              
+              const maskPolygon = L.polygon([worldBounds, coords], {
+                color: 'transparent',
+                fillColor: 'white',
+                fillOpacity: 1,
+                weight: 0
+              }).addTo(printMap);
+              
+              printMap.fitBounds(polygon.getBounds(), { padding: [5, 5], maxZoom: 17 });
+            };
+          <\/script>
+        </body>
+        </html>
+      `)
+      
+      printWindow.document.close()
+    } catch (error) {
+      console.error('Error printing territory:', error)
+      alert('Error al cargar los datos del territorio para imprimir')
+    }
   }
   
   printMainTerritory() {
