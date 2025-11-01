@@ -61,7 +61,7 @@
           </div>
           
           <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#new-territory-modal">
-            ✏️ New Small Territory
+            ✏️ Nuevo Territorio Pequeño
           </button>
           <button class="btn btn-success ms-2" onclick="printGeneralTerritory()">
             🖨️ Print General Territory
@@ -82,32 +82,49 @@
 </div>
 
 <!-- Modal for new territory -->
-<div class="modal fade" id="new-territory-modal" tabindex="-1">
+<div class="modal fade" 
+     id="new-territory-modal" 
+     tabindex="-1"
+     data-controller="territories--territory-form"
+     data-action="shown.bs.modal->territories--territory-form#modalOpened">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Create New Territory</h5>
+        <h5 class="modal-title">Crear Nuevo Territorio</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <form id="new-territory-form">
+        <form id="new-territory-form" data-territories--territory-form-target="form">
           <div class="mb-3">
-            <label for="territory-name" class="form-label">Territory Name</label>
-            <input type="text" class="form-control" id="territory-name" required>
+            <label for="territory-name" class="form-label">Nombre del Territorio</label>
+            <input type="text" 
+                   class="form-control" 
+                   id="territory-name" 
+                   data-territories--territory-form-target="nameInput"
+                   required>
           </div>
           <div class="mb-3">
-            <label for="territory-description" class="form-label">Description</label>
-            <textarea class="form-control" id="territory-description" rows="3"></textarea>
+            <label for="territory-description" class="form-label">Descripción</label>
+            <textarea class="form-control" 
+                      id="territory-description" 
+                      data-territories--territory-form-target="descriptionInput"
+                      rows="3"></textarea>
           </div>
           <div class="mb-3">
-            <label class="form-label">Draw the territory on the map</label>
-            <div id="drawing-map" style="height: 400px;"></div>
+            <label class="form-label">Dibuja el territorio en el mapa</label>
+            <div id="drawing-map" 
+                 data-territories--territory-form-target="drawingMap"
+                 style="height: 400px;"></div>
           </div>
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" id="save-territory">Save</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" 
+                class="btn btn-primary" 
+                id="save-territory"
+                data-territories--territory-form-target="saveBtn"
+                data-action="click->territories--territory-form#save">Guardar</button>
       </div>
     </div>
   </div>
@@ -133,55 +150,8 @@
     configurable: true
   });
   
-  // Map for drawing territories
-  const drawingMap = L.map('drawing-map').setView([-27.3668, -70.3314], 16);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(drawingMap);
-  
-  // Drawing tool
-  const drawnItems = new L.FeatureGroup();
-  drawingMap.addLayer(drawnItems);
-  
-  const drawControl = new L.Control.Draw({
-    draw: {
-      polygon: {
-        allowIntersection: false,
-        drawError: {
-          color: '#e1e100',
-          message: '<strong>Error:</strong> The polygon cannot intersect itself'
-        },
-        shapeOptions: {
-          color: '#3388ff',
-          fillColor: '#3388ff',
-          fillOpacity: 0.3
-        }
-      },
-      polyline: false,
-      circle: false,
-      rectangle: false,
-      circlemarker: false,
-      marker: false
-    },
-    edit: {
-      featureGroup: drawnItems,
-      remove: true
-    }
-  });
-  
-  drawingMap.addControl(drawControl);
-  
-  // Drawing events
-  drawingMap.on('draw:created', function(e) {
-    const layer = e.layer;
-    drawnItems.addLayer(layer);
-  });
-  
-  drawingMap.on('draw:deleted', function(e) {
-    e.layers.eachLayer(function(layer) {
-      drawnItems.removeLayer(layer);
-    });
-  });
+  // NOW MANAGED BY territories--territory-form CONTROLLER
+  // Drawing map and tools initialization moved to controller
   
   // Load congregations and territories on initialization
   // Esperar a que el mapa esté listo (inicializado por el controlador)
@@ -247,95 +217,8 @@
   // NOW MANAGED BY territories--territory-list CONTROLLER
   // Filter by status handler removed - now in controller
   
-  // Save new territory
-  document.getElementById('save-territory').addEventListener('click', function() {
-    const nameInput = document.getElementById('territory-name');
-    const name = (nameInput.value || '').trim();
-    const description = document.getElementById('territory-description').value;
-    const number = prompt('Number for this territory (optional):');
-    
-    if (!name) {
-      alert('Please enter a territory name');
-      nameInput.focus();
-      return;
-    }
-    
-    if (drawnItems.getLayers().length === 0) {
-      alert('Please draw a territory on the map');
-      return;
-    }
-    
-    const layer = drawnItems.getLayers()[0];
-    const coordinates = layer.getLatLngs()[0].map(latLng => [latLng.lng, latLng.lat]);
-    
-    // Calculate polygon center
-    let centerLat = 0, centerLng = 0;
-    coordinates.forEach(coord => {
-      centerLng += coord[0];
-      centerLat += coord[1];
-    });
-    centerLat /= coordinates.length;
-    centerLng /= coordinates.length;
-    
-    if (!currentCongregationId) {
-      alert('Select a congregation first');
-      return;
-    }
-  
-    const territoryData = {
-      name: name,
-      description: description,
-      number: number ? parseInt(number, 10) : null,
-      congregation_id: currentCongregationId,
-      boundaries: {
-        type: 'Polygon',
-        coordinates: [coordinates]
-      },
-      center: {
-        lng: centerLng,
-        lat: centerLat
-      }
-    };
-    
-    fetch('/api/v1/territories', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
-      },
-      body: JSON.stringify(territoryData)
-    })
-    .then(async (response) => {
-      const body = await response.json().catch(() => null);
-      if (!response.ok) {
-        const msg = body && body.errors ? body.errors.join(', ') : `HTTP ${response.status}`;
-        throw new Error(msg);
-      }
-      return body;
-    })
-    .then(data => {
-      // API returns GeoJSON Feature
-      const createdId = data && data.properties && data.properties.id;
-      if (createdId) {
-        alert('Territory created successfully');
-        
-        // Clear modal
-        const modal = document.getElementById('new-territory-modal');
-        const modalInstance = bootstrap.Modal.getInstance(modal);
-        modalInstance.hide();
-        
-        // Clear drawing map
-        drawnItems.clearLayers();
-        
-        // Clear form
-        document.getElementById('new-territory-form').reset();
-        
-        // Reload territories
-        loadTerritories();
-      }
-    })
-    .catch(error => alert(`Error creating territory: ${error.message}`));
-  });
+  // NOW MANAGED BY territories--territory-form CONTROLLER
+  // Save territory function moved to controller
   
   // Function to draw general territory
   function drawGeneralTerritory() {
