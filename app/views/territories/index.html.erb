@@ -75,10 +75,18 @@
           
           <div id="small-territory-controls" 
                style="display: none;" 
-               class="mb-3 p-3 border rounded bg-light"
+               class="mb-3 p-3 border rounded bg-info bg-opacity-10"
                data-territories--territory-form-target="drawingControls">
-            <h6 class="text-center mb-3">✏️ Dibujando Territorio</h6>
-            <small class="d-block text-muted mb-3 text-center">Haz clic en el mapa para crear el polígono</small>
+            <h6 class="text-center mb-2">✏️ Dibujando Territorio</h6>
+            <div class="alert alert-info py-2 px-3 mb-3" style="font-size: 13px;">
+              <strong>Instrucciones:</strong>
+              <ol class="mb-0 mt-1 ps-3">
+                <li>Haz clic en el botón de polígono <span class="badge bg-secondary">▢</span> en el mapa</li>
+                <li>Haz clic en cada vértice del territorio</li>
+                <li><strong>Doble clic</strong> o clic en el <strong>primer punto</strong> para cerrar</li>
+                <li>Luego haz clic en "💾 Guardar"</li>
+              </ol>
+            </div>
             <button class="btn btn-success btn-sm w-100 mb-2" 
                     data-action="click->territories--territory-form#saveDrawnTerritory">
               💾 Guardar Territorio
