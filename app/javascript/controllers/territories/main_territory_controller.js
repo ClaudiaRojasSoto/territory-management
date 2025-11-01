@@ -15,6 +15,7 @@ export default class extends Controller {
     this.demarcationMode = false
     this.demarcationPoints = []
     this.demarcationPolygon = null
+    this.demarcationMarkers = [] // Track markers for cleanup
     
     // Expose methods globally for backwards compatibility
     window.demarcateMainTerritory = this.startDemarcation.bind(this)
@@ -153,11 +154,18 @@ export default class extends Controller {
   }
   
   setupClickHandler(map) {
+    console.log("Setting up click handler, demarcationMode:", this.demarcationMode)
+    
+    // Remove any existing click handlers first
+    map.off('click')
+    
     // Leaflet click event
-    map.on('click.demarcation', (e) => {
+    map.on('click', (e) => {
+      console.log("Map clicked!", "demarcationMode:", this.demarcationMode)
       if (!this.demarcationMode) return
       
       const latlng = e.latlng
+      console.log("Adding point at:", latlng)
       this.addDemarcationPoint(latlng)
     })
   }
@@ -166,9 +174,12 @@ export default class extends Controller {
     const map = window.territoryMap
     this.demarcationPoints.push(latlng)
     
+    console.log("Point added. Total points:", this.demarcationPoints.length)
+    
     // Add marker
     const marker = L.marker(latlng).addTo(map)
     marker.bindPopup(`Punto ${this.demarcationPoints.length}`)
+    this.demarcationMarkers.push(marker) // Track for cleanup
     
     // Draw polygon if more than one point
     if (this.demarcationPoints.length > 1) {
@@ -249,7 +260,7 @@ export default class extends Controller {
     // Deactivate demarcation mode
     this.demarcationMode = false
     map.getContainer().style.cursor = ''
-    map.off('click.demarcation')
+    map.off('click')
     
     // Enable map dragging
     map.dragging.enable()
@@ -302,17 +313,20 @@ export default class extends Controller {
     const map = window.territoryMap
     if (!map) return
     
+    console.log("Clearing demarcation")
+    
     if (this.demarcationPolygon) {
       map.removeLayer(this.demarcationPolygon)
       this.demarcationPolygon = null
     }
     
-    // Clear markers
-    map.eachLayer((layer) => {
-      if (layer instanceof L.Marker) {
-        map.removeLayer(layer)
-      }
-    })
+    // Clear markers using tracked array
+    if (this.demarcationMarkers) {
+      this.demarcationMarkers.forEach(marker => {
+        map.removeLayer(marker)
+      })
+      this.demarcationMarkers = []
+    }
     
     this.demarcationPoints = []
     
@@ -333,7 +347,7 @@ export default class extends Controller {
     map.getContainer().style.cursor = ''
     map.dragging.enable()
     map.scrollWheelZoom.enable()
-    map.off('click.demarcation')
+    map.off('click')
     
     this.demarcationMode = false
   }
