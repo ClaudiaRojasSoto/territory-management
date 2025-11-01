@@ -8,7 +8,7 @@ export default class extends Controller {
   static values = {
     lat: { type: Number, default: -27.3668 },
     lng: { type: Number, default: -70.3314 },
-    zoom: { type: Number, default: 16 }
+    zoom: { type: Number, default: 13 }
   }
   
   connect() {
