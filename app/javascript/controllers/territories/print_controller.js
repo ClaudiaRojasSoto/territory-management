@@ -9,47 +9,179 @@ export default class extends Controller {
     window.printGeneralTerritory = () => this.printGeneralTerritory()
   }
   
-  printTerritory(territoryId, territoryName) {
-    const printWindow = window.open('', '_blank')
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>${territoryName} - Copiapó</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 20px; }
-          .header { text-align: center; margin-bottom: 30px; }
-          .map-container { width: 100%; height: 500px; margin: 20px 0; }
-          .info { margin: 20px 0; }
-          .boundaries { margin: 20px 0; }
-          @media print { .no-print { display: none; } }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>${territoryName}</h1>
-          <h2>Copiapó, Región de Atacama, Chile</h2>
-          <p>Fecha: ${new Date().toLocaleDateString('es-CL')}</p>
-        </div>
-        
-        <div class="info">
-          <h3>Información del Territorio:</h3>
-          <p><strong>ID:</strong> ${territoryId}</p>
-          <p><strong>Estado:</strong> [Se cargará desde la base de datos]</p>
-          <p><strong>Área:</strong> [Se calculará automáticamente]</p>
-        </div>
-        
-        <div class="map-container" id="print-map-${territoryId}"></div>
-        
-        <div class="no-print">
-          <button onclick="window.print()">Imprimir</button>
-          <button onclick="window.close()">Cerrar</button>
-        </div>
-      </body>
-      </html>
-    `)
-    
-    printWindow.document.close()
+  async printTerritory(territoryId, territoryName) {
+    try {
+      // Load territory data from API
+      const response = await fetch(`/api/v1/territories/${territoryId}`)
+      if (!response.ok) {
+        throw new Error('Failed to load territory data')
+      }
+      
+      const territory = await response.json()
+      const coordinates = territory.geometry.coordinates[0].map(c => [c[1], c[0]])
+      
+      if (!coordinates || coordinates.length === 0) {
+        alert('No hay coordenadas para este territorio')
+        return
+      }
+      
+      const congregationName = (window.congregationsById && 
+                              window.currentCongregationId && 
+                              window.congregationsById[String(window.currentCongregationId)]) || 
+                              'Congregación'
+      
+      const printWindow = window.open('', '_blank')
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${territoryName} - ${congregationName}</title>
+          <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+          <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
+          <style>
+            @page {
+              margin: 0.3cm;
+            }
+            body {
+              margin: 0;
+              padding: 20px;
+              font-family: Arial, sans-serif;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 20px;
+              padding: 10px;
+              background-color: #f8f9fa;
+              border-radius: 5px;
+            }
+            .header h1 {
+              margin: 0 0 10px 0;
+              color: #333;
+            }
+            .map-container {
+              width: 100%;
+              height: 600px;
+              margin: 20px 0;
+              border: 2px solid #000;
+            }
+            .no-print {
+              text-align: center;
+              margin-top: 20px;
+            }
+            .no-print button {
+              padding: 10px 20px;
+              margin: 5px;
+              font-size: 16px;
+              cursor: pointer;
+              border-radius: 5px;
+              border: 1px solid #ccc;
+            }
+            .no-print button:hover {
+              background-color: #e9ecef;
+            }
+            
+            @media print {
+              @page {
+                size: A4 landscape;
+                margin: 1cm;
+              }
+              html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                overflow: hidden !important;
+              }
+              .no-print { 
+                display: none !important; 
+              }
+              .header {
+                padding: 3px !important;
+                margin: 0 !important;
+                background-color: #f8f9fa !important;
+                page-break-inside: avoid;
+                page-break-after: avoid;
+                height: 40px !important;
+              }
+              .header h1 {
+                font-size: 16px !important;
+                margin: 0 !important;
+                line-height: 1.2 !important;
+              }
+              .header p {
+                font-size: 10px !important;
+                margin: 0 !important;
+              }
+              .map-container {
+                height: 17cm !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: 2px solid #000 !important;
+                page-break-inside: avoid;
+                page-break-after: avoid;
+                overflow: hidden !important;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>📍 ${territoryName}</h1>
+            <p>${congregationName}</p>
+          </div>
+          
+          <div id="print-map" class="map-container"></div>
+          
+          <div class="no-print">
+            <button onclick="window.print()">🖨️ Imprimir</button>
+            <button onclick="window.close()">❌ Cerrar</button>
+          </div>
+          
+          <script>
+            window.onload = function() {
+              const coords = ${JSON.stringify(coordinates)};
+              const printMap = L.map('print-map').setView([${coordinates[0][0]}, ${coordinates[0][1]}], 14);
+              
+              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+              }).addTo(printMap);
+              
+              const polygon = L.polygon(coords, {
+                color: '#000',
+                fillColor: 'transparent',
+                fillOpacity: 0,
+                weight: 3
+              }).addTo(printMap);
+              
+              const bounds = printMap.getBounds();
+              const worldBounds = [
+                [bounds.getSouth() - 1, bounds.getWest() - 1],
+                [bounds.getSouth() - 1, bounds.getEast() + 1],
+                [bounds.getNorth() + 1, bounds.getEast() + 1],
+                [bounds.getNorth() + 1, bounds.getWest() - 1],
+                [bounds.getSouth() - 1, bounds.getWest() - 1]
+              ];
+              
+              const maskPolygon = L.polygon([worldBounds, coords], {
+                color: 'transparent',
+                fillColor: 'white',
+                fillOpacity: 1,
+                weight: 0
+              }).addTo(printMap);
+              
+              printMap.fitBounds(polygon.getBounds(), { padding: [10, 10], maxZoom: 18 });
+            };
+          <\/script>
+        </body>
+        </html>
+      `)
+      
+      printWindow.document.close()
+    } catch (error) {
+      console.error('Error printing territory:', error)
+      alert('Error al cargar los datos del territorio para imprimir')
+    }
   }
   
   printMainTerritory() {
@@ -122,8 +254,59 @@ export default class extends Controller {
             font-size: 12px; 
             margin: 10px 0; 
           }
-          @media print { 
-            .no-print { display: none; } 
+          @media print {
+            @page {
+              size: A4 landscape;
+              margin: 1cm;
+            }
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              width: 100% !important;
+              height: 100% !important;
+              overflow: hidden !important;
+            }
+            .no-print { 
+              display: none !important; 
+            }
+            .header {
+              padding: 3px !important;
+              margin: 0 !important;
+              background-color: #f8f9fa !important;
+              page-break-inside: avoid;
+              page-break-after: avoid;
+              height: 50px !important;
+            }
+            .header h1 {
+              font-size: 14px !important;
+              margin: 0 !important;
+              line-height: 1.2 !important;
+            }
+            .header h2 {
+              font-size: 12px !important;
+              margin: 0 !important;
+              line-height: 1.2 !important;
+            }
+            .header p {
+              font-size: 9px !important;
+              margin: 0 !important;
+            }
+            .info {
+              display: none !important;
+            }
+            .coordinates {
+              display: none !important;
+            }
+            .map-container {
+              height: 17cm !important;
+              width: 100% !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              border: 2px solid #ffc107 !important;
+              page-break-inside: avoid;
+              page-break-after: avoid;
+              overflow: hidden !important;
+            }
           }
         </style>
       </head>
@@ -188,7 +371,7 @@ export default class extends Controller {
               weight: 0
             }).addTo(printMap);
             
-            printMap.fitBounds(polygon.getBounds(), { padding: [30, 30] });
+            printMap.fitBounds(polygon.getBounds(), { padding: [20, 20], maxZoom: 18 });
           };
         <\/script>
       </body>
@@ -259,17 +442,61 @@ export default class extends Controller {
           .info { 
             margin: 20px 0; 
           }
-          @media print { 
-            .no-print { display: none; } 
+          @media print {
+            @page {
+              margin: 0.5cm;
+            }
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              width: 100% !important;
+              overflow: hidden !important;
+            }
+            .no-print { 
+              display: none !important; 
+            }
+            .header {
+              padding: 5px !important;
+              margin: 0 0 5px 0 !important;
+              background-color: #f8f9fa !important;
+              page-break-inside: avoid;
+              page-break-after: avoid;
+            }
+            .header h1 {
+              font-size: 18px !important;
+              margin: 0 !important;
+            }
+            .header h2 {
+              font-size: 14px !important;
+              margin: 0 !important;
+            }
+            .header p {
+              font-size: 11px !important;
+              margin: 0 !important;
+            }
+            .info {
+              display: none !important;
+            }
+            .coordinates {
+              display: none !important;
+            }
+            .map-container {
+              height: 17cm !important;
+              width: 100% !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              border: 2px solid #28a745 !important;
+              page-break-inside: avoid;
+              page-break-after: avoid;
+              overflow: hidden !important;
+            }
           }
         </style>
       </head>
       <body>
         <div class="header">
-          <h1>📍 Territorio General de Predicación</h1>
-          <h2>${congregationName}</h2>
-          <h3>Copiapó, Región de Atacama, Chile</h3>
-          <p>Fecha: ${new Date().toLocaleDateString('es-CL')}</p>
+          <h1>📍 Territorio General - ${congregationName}</h1>
+          <p>Copiapó, Atacama - ${new Date().toLocaleDateString('es-CL')}</p>
         </div>
         
         <div class="info">
@@ -320,7 +547,7 @@ export default class extends Controller {
               weight: 0
             }).addTo(printMap);
             
-            printMap.fitBounds(polygon.getBounds(), { padding: [30, 30] });
+            printMap.fitBounds(polygon.getBounds(), { padding: [20, 20], maxZoom: 18 });
           };
         <\/script>
       </body>

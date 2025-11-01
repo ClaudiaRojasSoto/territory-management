@@ -108,9 +108,13 @@ export default class extends Controller {
   }
   
   renderOnMap(territories) {
-    // Try to use territory-map controller if available
-    if (typeof displayTerritories === 'function') {
-      displayTerritories(territories)
+    // Find territory-map controller and render
+    const mapElement = document.querySelector('[data-controller~="territories--territory-map"]')
+    if (mapElement) {
+      const mapController = this.application.getControllerForElementAndIdentifier(mapElement, 'territories--territory-map')
+      if (mapController && typeof mapController.render === 'function') {
+        mapController.render(territories)
+      }
     }
   }
   

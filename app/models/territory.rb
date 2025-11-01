@@ -2,8 +2,13 @@ class Territory < ApplicationRecord
   belongs_to :congregation
   belongs_to :assigned_to, class_name: 'User', optional: true
   
+  # Callbacks
+  before_validation :auto_assign_number, if: :new_record?
+  before_validation :auto_generate_name, if: :new_record?
+  
   validates :name, presence: true
   validates :status, inclusion: { in: %w[available assigned completed returned] }
+  validates :number, uniqueness: { scope: :congregation_id, allow_nil: true }
   
   # Geoespacial
   validates :boundaries, presence: true
@@ -18,7 +23,8 @@ class Territory < ApplicationRecord
   # Métodos geoespaciales
   def area_in_sq_meters
     return nil unless boundaries
-    RGeo::Geos.factory(srid: 4326).parse_wkt(boundaries).area
+    # boundaries is already an RGeo geometry object
+    boundaries.area
   end
   
   def area_in_acres
@@ -60,5 +66,25 @@ class Territory < ApplicationRecord
         assigned_to: assigned_to&.name
       }
     }
+  end
+  
+  private
+  
+  # Auto-assign next available number if not provided
+  def auto_assign_number
+    return if number.present?
+    
+    max_number = Territory.where(congregation_id: congregation_id).maximum(:number) || 0
+    self.number = max_number + 1
+  end
+  
+  # Auto-generate name based on number if not provided
+  def auto_generate_name
+    return if name.present?
+    
+    # Ensure number is set first
+    auto_assign_number if number.blank?
+    
+    self.name = "Territorio #{number}"
   end
 end
