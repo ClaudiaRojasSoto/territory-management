@@ -126,6 +126,7 @@ export default class extends Controller {
       name: name || null, // Will be auto-generated on backend if null
       description: description || null,
       number: numberValue ? parseInt(numberValue, 10) : null, // Will be auto-assigned if null
+      status: 'available',
       congregation_id: window.currentCongregationId,
       boundaries: {
         type: 'Polygon',
@@ -353,6 +354,7 @@ export default class extends Controller {
       name: name || null,
       description: null,
       number: number || null,
+      status: 'available',
       congregation_id: window.currentCongregationId,
       boundaries: {
         type: 'Polygon',
