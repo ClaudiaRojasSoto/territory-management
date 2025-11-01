@@ -71,26 +71,7 @@ export default class extends Controller {
   setupTerritoryFeature(feature, layer) {
     const properties = feature.properties
     
-    // Create popup content
-    const popupContent = `
-      <div class="territory-popup">
-        <h6 class="mb-2">
-          ${properties.number ? `#${properties.number} - ` : ''}
-          ${properties.name}
-        </h6>
-        <p class="mb-1">
-          <strong>Estado:</strong> ${this.translateStatus(properties.status)}
-        </p>
-        <p class="mb-1">
-          <strong>Área:</strong> ${properties.area} acres
-        </p>
-        <p class="mb-1">
-          <strong>Asignado a:</strong> ${properties.assigned_to || 'Sin asignar'}
-        </p>
-      </div>
-    `
-    
-    layer.bindPopup(popupContent)
+    // Remove the text popup - we'll use a modal instead
     
     // Add number label if territory has a number
     if (properties.number && properties.center) {
@@ -117,6 +98,84 @@ export default class extends Controller {
     layer.on('mouseout', () => {
       layer.setStyle(this.getTerritoryStyle(feature))
     })
+    
+    // Add click event to show territory map in modal
+    layer.on('click', (e) => {
+      L.DomEvent.stopPropagation(e)
+      this.showTerritoryMapModal(properties)
+    })
+  }
+  
+  async showTerritoryMapModal(properties) {
+    // Update modal title
+    const title = `${properties.number ? `#${properties.number} - ` : ''}${properties.name}`
+    document.getElementById('territoryDetailTitle').textContent = title
+    
+    // Make sure info is hidden and map is full width
+    const infoParent = document.getElementById('territoryDetailInfo')?.parentElement
+    if (infoParent) {
+      infoParent.style.display = 'none'
+    }
+    
+    const mapParent = document.querySelector('#territoryDetailMap')?.parentElement
+    if (mapParent) {
+      mapParent.className = 'col-12'
+    }
+    
+    // Set map height
+    const mapElement = document.getElementById('territoryDetailMap')
+    if (mapElement) {
+      mapElement.style.height = '500px'
+    }
+    
+    // Store territory ID for print button
+    window.currentDetailTerritoryId = properties.id
+    window.currentDetailTerritoryName = properties.name
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('territoryDetailModal'))
+    modal.show()
+    
+    // Initialize map after modal is shown
+    document.getElementById('territoryDetailModal').addEventListener('shown.bs.modal', async () => {
+      await this.initTerritoryDetailMap(properties)
+    }, { once: true })
+  }
+  
+  async initTerritoryDetailMap(properties) {
+    // Remove existing map if any
+    const mapContainer = document.getElementById('territoryDetailMap')
+    mapContainer.innerHTML = ''
+    
+    // Create new map
+    const detailMap = L.map('territoryDetailMap')
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(detailMap)
+    
+    // Fetch territory geometry from API
+    try {
+      const response = await fetch(`/api/v1/territories/${properties.id}`)
+      const territory = await response.json()
+      
+      const coordinates = territory.geometry.coordinates[0].map(c => [c[1], c[0]])
+      
+      // Draw polygon with thicker border
+      const polygon = L.polygon(coordinates, {
+        color: '#000',
+        fillColor: '#4CAF50',
+        fillOpacity: 0.3,
+        weight: 3
+      }).addTo(detailMap)
+      
+      // Fit map to polygon with good zoom
+      detailMap.fitBounds(polygon.getBounds(), { padding: [30, 30], maxZoom: 18 })
+      
+    } catch (error) {
+      console.error('Error loading territory details:', error)
+      mapContainer.innerHTML = '<p class="text-danger">Error al cargar el mapa</p>'
+    }
   }
   
   addNumberLabel(properties) {
