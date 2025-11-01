@@ -49,7 +49,8 @@
                     data-action="click->territories--main-territory#edit">
               ✏️ Editar <span id="btn-edit-name">Zona Principal</span>
             </button>
-            <button class="btn btn-info btn-sm w-100 mb-2" onclick="printMainTerritory()">
+            <button class="btn btn-info btn-sm w-100 mb-2" 
+                    data-action="click->territories--print#printMainTerritory">
               🖨️ Imprimir <span id="btn-print-name">Zona Principal</span>
             </button>
             <button class="btn btn-danger btn-sm w-100" 
@@ -61,7 +62,8 @@
           <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#new-territory-modal">
             ✏️ Nuevo Territorio Pequeño
           </button>
-          <button class="btn btn-success ms-2" onclick="printGeneralTerritory()">
+          <button class="btn btn-success ms-2" 
+                  data-action="click->territories--print#printGeneralTerritory">
             🖨️ Imprimir Territorio General
           </button>
         </div>

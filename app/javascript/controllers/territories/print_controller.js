@@ -3,11 +3,10 @@ import { Controller } from "@hotwired/stimulus"
 // Connects to data-controller="territories--print"
 export default class extends Controller {
   connect() {
-    
     // Expose methods globally for backwards compatibility
     window.printTerritory = this.printTerritory.bind(this)
-    window.printMainTerritory = this.printMainTerritory.bind(this)
-    window.printGeneralTerritory = this.printGeneralTerritory.bind(this)
+    window.printMainTerritory = () => this.printMainTerritory()
+    window.printGeneralTerritory = () => this.printGeneralTerritory()
   }
   
   printTerritory(territoryId, territoryName) {
@@ -88,6 +87,11 @@ export default class extends Controller {
                              window.congregationsById[String(window.currentCongregationId)]) || 
                              'Zona Principal de la Congregación'
     
+    // Build coordinates HTML
+    const coordinatesHtml = coordinates.slice(0, -1)
+      .map((c, i) => `Punto ${i+1}: ${c[0].toFixed(6)}, ${c[1].toFixed(6)}`)
+      .join('<br>')
+    
     const printWindow = window.open('', '_blank')
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -140,7 +144,7 @@ export default class extends Controller {
         
         <div class="coordinates">
           <h4>Coordenadas:</h4>
-          <p>${coordinates.slice(0, -1).map((c, i) => \`Punto \${i+1}: \${c[0].toFixed(6)}, \${c[1].toFixed(6)}\`).join('<br>')}</p>
+          <p>${coordinatesHtml}</p>
         </div>
         
         <div class="no-print" style="text-align: center; margin-top: 20px;">
@@ -151,21 +155,40 @@ export default class extends Controller {
         <script>
           // Initialize map when window loads
           window.onload = function() {
+            const coords = ${JSON.stringify(coordinates)};
             const printMap = L.map('print-map').setView([${coordinates[0][0]}, ${coordinates[0][1]}], 15);
             
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
               attribution: '© OpenStreetMap contributors'
             }).addTo(printMap);
             
-            const coords = ${JSON.stringify(coordinates)};
+            // Draw the territory polygon with border
             const polygon = L.polygon(coords, {
               color: '#ffc107',
-              fillColor: '#ffc107',
-              fillOpacity: 0.3,
+              fillColor: 'transparent',
+              fillOpacity: 0,
               weight: 3
             }).addTo(printMap);
             
-            printMap.fitBounds(polygon.getBounds(), { padding: [50, 50] });
+            // Create inverse mask to hide everything outside the polygon
+            const bounds = printMap.getBounds();
+            const worldBounds = [
+              [bounds.getSouth() - 1, bounds.getWest() - 1],
+              [bounds.getSouth() - 1, bounds.getEast() + 1],
+              [bounds.getNorth() + 1, bounds.getEast() + 1],
+              [bounds.getNorth() + 1, bounds.getWest() - 1],
+              [bounds.getSouth() - 1, bounds.getWest() - 1]
+            ];
+            
+            // Inverse polygon: outer boundary with inner hole
+            const maskPolygon = L.polygon([worldBounds, coords], {
+              color: 'transparent',
+              fillColor: 'white',
+              fillOpacity: 1,
+              weight: 0
+            }).addTo(printMap);
+            
+            printMap.fitBounds(polygon.getBounds(), { padding: [30, 30] });
           };
         <\/script>
       </body>
@@ -176,12 +199,46 @@ export default class extends Controller {
   }
   
   printGeneralTerritory() {
+    // Gather coordinates from the saved congregation area
+    let coordinates = []
+    
+    if (window.mainTerritoryPoints && window.mainTerritoryPoints.length > 0) {
+      coordinates = window.mainTerritoryPoints.map(point => [point.lat, point.lng])
+    } else if (window.mainCongregationFeature && 
+               window.mainCongregationFeature.geometry && 
+               window.mainCongregationFeature.geometry.coordinates) {
+      try {
+        const ring = window.mainCongregationFeature.geometry.coordinates[0] || []
+        coordinates = ring.map(c => [c[1], c[0]])
+      } catch (e) {
+        console.error('Error parsing main congregation feature:', e)
+      }
+    } else if (window.mainTerritoryLayer) {
+      try {
+        const latLngs = window.mainTerritoryLayer.getLatLngs()
+        const ring = Array.isArray(latLngs) ? (Array.isArray(latLngs[0]) ? latLngs[0] : latLngs) : []
+        coordinates = ring.map(ll => [ll.lat, ll.lng])
+      } catch (e) {
+        console.error('Error getting coordinates from layer:', e)
+      }
+    }
+    
+    if (!coordinates || coordinates.length === 0) {
+      alert('No hay zona principal de congregación guardada para imprimir')
+      return
+    }
+    
+    const congregationName = (window.congregationsById && 
+                             window.currentCongregationId && 
+                             window.congregationsById[String(window.currentCongregationId)]) || 
+                             'Congregación'
+    
     const printWindow = window.open('', '_blank')
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Territorio General - Copiapó</title>
+        <title>Territorio General - ${congregationName}</title>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
         <style>
@@ -191,23 +248,16 @@ export default class extends Controller {
           }
           .header { 
             text-align: center; 
-            margin-bottom: 30px; 
+            margin-bottom: 20px; 
           }
           .map-container { 
             width: 100%; 
             height: 600px; 
             margin: 20px 0; 
-            border: 2px solid #dc3545;
+            border: 2px solid #28a745;
           }
-          .boundaries { 
+          .info { 
             margin: 20px 0; 
-          }
-          .boundaries ul { 
-            list-style-type: none; 
-            padding-left: 0; 
-          }
-          .boundaries li { 
-            padding: 5px 0; 
           }
           @media print { 
             .no-print { display: none; } 
@@ -217,57 +267,60 @@ export default class extends Controller {
       <body>
         <div class="header">
           <h1>📍 Territorio General de Predicación</h1>
-          <h2>Copiapó, Región de Atacama, Chile</h2>
+          <h2>${congregationName}</h2>
+          <h3>Copiapó, Región de Atacama, Chile</h3>
           <p>Fecha: ${new Date().toLocaleDateString('es-CL')}</p>
         </div>
         
-        <div class="boundaries">
-          <h3>Límites del Territorio:</h3>
-          <ul>
-            <li>🧭 <strong>Norte:</strong> Avenida Van Buren</li>
-            <li>🧭 <strong>Sur:</strong> Calle Inca</li>
-            <li>🧭 <strong>Este:</strong> Río Copiapó</li>
-            <li>🧭 <strong>Oeste:</strong> Avenida Los Loros</li>
-          </ul>
+        <div class="info">
+          <h3>Área de la Congregación:</h3>
+          <p><strong>Puntos de límite:</strong> ${coordinates.length - 1}</p>
+          <p><strong>Congregación:</strong> ${congregationName}</p>
         </div>
         
         <div id="print-map" class="map-container"></div>
         
         <div class="no-print" style="text-align: center; margin-top: 20px;">
-          <button onclick="window.print()" style="padding: 10px 20px; margin: 5px;">Imprimir</button>
-          <button onclick="window.close()" style="padding: 10px 20px; margin: 5px;">Cerrar</button>
+          <button onclick="window.print()" style="padding: 10px 20px; margin: 5px;">🖨️ Imprimir</button>
+          <button onclick="window.close()" style="padding: 10px 20px; margin: 5px;">❌ Cerrar</button>
         </div>
         
         <script>
           window.onload = function() {
-            const printMap = L.map('print-map').setView([-27.3665, -70.3300], 14);
+            const coords = ${JSON.stringify(coordinates)};
+            const printMap = L.map('print-map').setView([${coordinates[0][0]}, ${coordinates[0][1]}], 14);
             
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
               attribution: '© OpenStreetMap contributors'
             }).addTo(printMap);
             
-            const generalTerritoryCoords = [
-              [-27.3650, -70.3350], // Van Buren (North)
-              [-27.3650, -70.3250], // Los Loros (West)
-              [-27.3680, -70.3250], // Inca (South)
-              [-27.3680, -70.3350], // Río Copiapó (East)
-              [-27.3650, -70.3350]  // Close polygon
-            ];
-            
-            const polygon = L.polygon(generalTerritoryCoords, {
-              color: '#dc3545',
-              fillColor: '#dc3545',
-              fillOpacity: 0.2,
-              weight: 4
+            // Draw the territory polygon with border
+            const polygon = L.polygon(coords, {
+              color: '#28a745',
+              fillColor: 'transparent',
+              fillOpacity: 0,
+              weight: 3
             }).addTo(printMap);
             
-            // Add markers for boundaries
-            L.marker([-27.3650, -70.3300]).bindPopup('<strong>Van Buren</strong><br>Límite Norte').addTo(printMap);
-            L.marker([-27.3680, -70.3300]).bindPopup('<strong>Inca</strong><br>Límite Sur').addTo(printMap);
-            L.marker([-27.3665, -70.3350]).bindPopup('<strong>Río Copiapó</strong><br>Límite Este').addTo(printMap);
-            L.marker([-27.3665, -70.3250]).bindPopup('<strong>Avenida Los Loros</strong><br>Límite Oeste').addTo(printMap);
+            // Create inverse mask to hide everything outside the polygon
+            const bounds = printMap.getBounds();
+            const worldBounds = [
+              [bounds.getSouth() - 1, bounds.getWest() - 1],
+              [bounds.getSouth() - 1, bounds.getEast() + 1],
+              [bounds.getNorth() + 1, bounds.getEast() + 1],
+              [bounds.getNorth() + 1, bounds.getWest() - 1],
+              [bounds.getSouth() - 1, bounds.getWest() - 1]
+            ];
             
-            printMap.fitBounds(polygon.getBounds(), { padding: [50, 50] });
+            // Inverse polygon: outer boundary with inner hole
+            const maskPolygon = L.polygon([worldBounds, coords], {
+              color: 'transparent',
+              fillColor: 'white',
+              fillOpacity: 1,
+              weight: 0
+            }).addTo(printMap);
+            
+            printMap.fitBounds(polygon.getBounds(), { padding: [30, 30] });
           };
         <\/script>
       </body>
