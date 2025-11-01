@@ -102,7 +102,17 @@ export default class extends Controller {
     }
     
     // Load territories for this congregation
-    if (typeof loadTerritories === 'function') {
+    // Try to call territory list controller if available
+    const territoryListController = document.querySelector('[data-controller~="territories--territory-list"]')
+    if (territoryListController) {
+      const controller = this.application.getControllerForElementAndIdentifier(
+        territoryListController,
+        'territories--territory-list'
+      )
+      if (controller && controller.load) {
+        controller.load(this.currentIdValue)
+      }
+    } else if (typeof loadTerritories === 'function') {
       loadTerritories()
     }
   }

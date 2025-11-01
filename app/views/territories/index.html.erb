@@ -1,4 +1,4 @@
-<div class="container-fluid" data-controller="hello territories--map territories--congregation">
+<div class="container-fluid" data-controller="hello territories--map territories--congregation territories--territory-list">
   <div class="row">
     <div class="col-md-3 sidebar">
       <div class="sidebar-content">
@@ -9,17 +9,21 @@
                   id="congregation-filter"
                   data-territories--congregation-target="filter"
                   data-action="change->territories--congregation#change"></select>
-          <label class="form-label">Status</label>
-          <select class="form-select" id="status-filter">
-            <option value="">All statuses</option>
-            <option value="available">Available</option>
-            <option value="assigned">Assigned</option>
-            <option value="completed">Completed</option>
-            <option value="returned">Returned</option>
+          <label class="form-label">Estado</label>
+          <select class="form-select" 
+                  id="status-filter"
+                  data-territories--territory-list-target="statusFilter">
+            <option value="">Todos los estados</option>
+            <option value="available">Disponible</option>
+            <option value="assigned">Asignado</option>
+            <option value="completed">Completado</option>
+            <option value="returned">Devuelto</option>
           </select>
         </div>
         
-        <div class="territories-list" id="territories-list">
+        <div class="territories-list" 
+             id="territories-list"
+             data-territories--territory-list-target="list">
           <!-- Territories will be loaded here dynamically -->
         </div>
         <div class="mt-2">
@@ -205,16 +209,10 @@
     console.log("loadCongregations called - now managed by congregation controller")
   }
 
-  // Function to load territories
+  // NOW MANAGED BY territories--territory-list CONTROLLER
+  // Keeping reference for backwards compatibility
   function loadTerritories() {
-    const url = currentCongregationId ? `/api/v1/territories?congregation_id=${currentCongregationId}` : '/api/v1/territories';
-    fetch(url)
-      .then(response => response.json())
-      .then(data => {
-        displayTerritories(data);
-        updateTerritoriesList(data);
-      })
-      .catch(error => console.error('Error:', error));
+    console.log("loadTerritories called - now managed by territory-list controller")
   }
 
   // NOW MANAGED BY territories--congregation CONTROLLER
@@ -280,43 +278,14 @@
     });
   }
   
-  // Function to update territories list
+  // NOW MANAGED BY territories--territory-list CONTROLLER
+  // function updateTerritoriesList(territories) { ... }
   function updateTerritoriesList(territories) {
-    const list = document.getElementById('territories-list');
-    list.innerHTML = '';
-    
-    territories.forEach(territory => {
-      const item = document.createElement('div');
-      item.className = 'territory-item p-2 border-bottom';
-      item.innerHTML = `
-        <h6>${territory.properties.number ? `#${territory.properties.number} - ` : ''}${territory.properties.name}</h6>
-        <small class="text-muted">${territory.properties.status}</small>
-        <br>
-        <small>${territory.properties.area} acres</small>
-        <div class="mt-2">
-          <button class="btn btn-sm btn-outline-primary" onclick="printTerritory(${territory.properties.id}, '${territory.properties.name}')">
-            Print
-          </button>
-        </div>
-      `;
-      
-      item.addEventListener('click', () => {
-        // Center map on territory
-        const center = territory.properties.center;
-        if (center && center.lat && center.lng) {
-          map.setView([center.lat, center.lng], 15);
-        }
-      });
-      
-      list.appendChild(item);
-    });
+    console.log("updateTerritoriesList called - now managed by territory-list controller")
   }
   
-  // Filter by status
-  document.getElementById('status-filter').addEventListener('change', function() {
-    const status = this.value;
-          // Implement filtering
-  });
+  // NOW MANAGED BY territories--territory-list CONTROLLER
+  // Filter by status handler removed - now in controller
   
   // Save new territory
   document.getElementById('save-territory').addEventListener('click', function() {
