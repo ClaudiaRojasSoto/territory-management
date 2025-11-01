@@ -46,7 +46,18 @@ export class ApiClient {
       })
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        // Try to parse error response
+        let errorData = null
+        try {
+          errorData = await response.json()
+        } catch (e) {
+          // If JSON parsing fails, use generic error
+        }
+        
+        const error = new Error(`HTTP error! status: ${response.status}`)
+        error.response = errorData
+        error.status = response.status
+        throw error
       }
       
       return await response.json()

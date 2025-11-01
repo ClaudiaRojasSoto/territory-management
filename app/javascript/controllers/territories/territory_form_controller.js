@@ -153,7 +153,14 @@ export default class extends Controller {
       }
     } catch (error) {
       console.error('Error creating territory:', error)
-      alert(`❌ Error al crear el territorio: ${error.message}`)
+      
+      // Show detailed error message
+      let errorMessage = error.message
+      if (error.response && error.response.errors) {
+        errorMessage = error.response.errors.join('\n')
+      }
+      
+      alert(`❌ Error al crear el territorio:\n\n${errorMessage}`)
     }
   }
   
@@ -372,7 +379,14 @@ export default class extends Controller {
       }
     } catch (error) {
       console.error('Error creating territory:', error)
-      alert(`❌ Error al crear el territorio: ${error.message}`)
+      
+      // Show detailed error message
+      let errorMessage = error.message
+      if (error.response && error.response.errors) {
+        errorMessage = error.response.errors.join('\n')
+      }
+      
+      alert(`❌ Error al crear el territorio:\n\n${errorMessage}`)
     }
   }
   
