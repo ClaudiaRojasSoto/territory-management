@@ -46,6 +46,16 @@ export default class extends Controller {
     window.territoryMap = this.map
     window.mainLayerGroup = this.mainLayerGroup
     
+    // Dynamic getter for legacy code that uses window.map
+    if (!Object.getOwnPropertyDescriptor(window, 'map')) {
+      Object.defineProperty(window, 'map', {
+        get: function() {
+          return window.territoryMap;
+        },
+        configurable: true
+      });
+    }
+    
     console.log("Mapa inicializado en:", this.latValue, this.lngValue, "zoom:", this.zoomValue)
   }
   

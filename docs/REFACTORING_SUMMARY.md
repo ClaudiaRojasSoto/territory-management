@@ -14,7 +14,7 @@ Successfully refactored the Territory App from inline JavaScript to modular Stim
 - **Reusability**: ❌ None
 
 ### After Refactoring
-- **View file**: `app/views/territories/index.html.erb` - 223 lines (1,069 lines reduced)
+- **View file**: `app/views/territories/index.html.erb` - **186 lines** (1,106 lines reduced)
 - **JavaScript**: Organized in 7 modular controllers + 2 helpers
 - **Functions**: 0 global functions (all in controllers)
 - **Maintainability**: ✅ Easy
@@ -155,7 +155,7 @@ app/javascript/
 
 | Metric | Before | After | Improvement |
 |--------|--------|-------|-------------|
-| View Lines | 1,292 | 223 | **-83%** |
+| View Lines | 1,292 | **186** | **-86%** |
 | Global Functions | 18 | 0 | **-100%** |
 | JS Files | 1 (inline) | 9 (modular) | **+800% organization** |
 | Reusable Code | 0% | 95% | **+95%** |
