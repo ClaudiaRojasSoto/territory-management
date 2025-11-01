@@ -150,7 +150,7 @@ export default class extends Controller {
                 weight: 0
               }).addTo(printMap);
               
-              printMap.fitBounds(polygon.getBounds(), { padding: [5, 5], maxZoom: 17 });
+              printMap.fitBounds(polygon.getBounds(), { padding: [5, 5], maxZoom: 19 });
             };
           <\/script>
         </body>
@@ -300,7 +300,7 @@ export default class extends Controller {
               weight: 0
             }).addTo(printMap);
             
-            printMap.fitBounds(polygon.getBounds(), { padding: [30, 30] });
+            printMap.fitBounds(polygon.getBounds(), { padding: [30, 30], maxZoom: 19 });
           };
         <\/script>
       </body>
@@ -432,7 +432,7 @@ export default class extends Controller {
               weight: 0
             }).addTo(printMap);
             
-            printMap.fitBounds(polygon.getBounds(), { padding: [30, 30] });
+            printMap.fitBounds(polygon.getBounds(), { padding: [30, 30], maxZoom: 19 });
           };
         <\/script>
       </body>
