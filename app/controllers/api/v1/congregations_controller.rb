@@ -21,6 +21,7 @@ class Api::V1::CongregationsController < ApplicationController
 
   def update
     if @congregation.update(congregation_params)
+      @congregation.reload # Force reload from database to get fresh geometry
       render json: @congregation.to_geojson
     else
       render json: { errors: @congregation.errors.full_messages }, status: :unprocessable_entity
