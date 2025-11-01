@@ -82,39 +82,44 @@ export default class extends Controller {
             
             @media print {
               @page {
-                margin: 0.5cm;
+                size: A4;
+                margin: 1cm;
               }
               html, body {
                 margin: 0 !important;
                 padding: 0 !important;
                 width: 100% !important;
+                height: 100% !important;
                 overflow: hidden !important;
               }
               .no-print { 
                 display: none !important; 
               }
               .header {
-                padding: 5px !important;
-                margin: 0 0 5px 0 !important;
+                padding: 3px !important;
+                margin: 0 !important;
                 background-color: #f8f9fa !important;
                 page-break-inside: avoid;
                 page-break-after: avoid;
+                height: 40px !important;
               }
               .header h1 {
-                font-size: 18px !important;
+                font-size: 16px !important;
                 margin: 0 !important;
+                line-height: 1.2 !important;
               }
               .header p {
-                font-size: 12px !important;
+                font-size: 10px !important;
                 margin: 0 !important;
               }
               .map-container {
-                height: calc(100vh - 80px) !important;
+                height: 24cm !important;
                 width: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 border: 2px solid #000 !important;
                 page-break-inside: avoid;
+                page-break-after: avoid;
               }
             }
           </style>
@@ -250,34 +255,39 @@ export default class extends Controller {
           }
           @media print {
             @page {
-              margin: 0.5cm;
+              size: A4;
+              margin: 1cm;
             }
             html, body {
               margin: 0 !important;
               padding: 0 !important;
               width: 100% !important;
+              height: 100% !important;
               overflow: hidden !important;
             }
             .no-print { 
               display: none !important; 
             }
             .header {
-              padding: 5px !important;
-              margin: 0 0 5px 0 !important;
+              padding: 3px !important;
+              margin: 0 !important;
               background-color: #f8f9fa !important;
               page-break-inside: avoid;
               page-break-after: avoid;
+              height: 50px !important;
             }
             .header h1 {
-              font-size: 18px !important;
-              margin: 0 !important;
-            }
-            .header h2 {
               font-size: 14px !important;
               margin: 0 !important;
+              line-height: 1.2 !important;
+            }
+            .header h2 {
+              font-size: 12px !important;
+              margin: 0 !important;
+              line-height: 1.2 !important;
             }
             .header p {
-              font-size: 11px !important;
+              font-size: 9px !important;
               margin: 0 !important;
             }
             .info {
@@ -287,12 +297,13 @@ export default class extends Controller {
               display: none !important;
             }
             .map-container {
-              height: calc(100vh - 100px) !important;
+              height: 23cm !important;
               width: 100% !important;
               margin: 0 !important;
               padding: 0 !important;
               border: 2px solid #ffc107 !important;
               page-break-inside: avoid;
+              page-break-after: avoid;
             }
           }
         </style>
@@ -468,22 +479,21 @@ export default class extends Controller {
               display: none !important;
             }
             .map-container {
-              height: calc(100vh - 100px) !important;
+              height: 23cm !important;
               width: 100% !important;
               margin: 0 !important;
               padding: 0 !important;
               border: 2px solid #28a745 !important;
               page-break-inside: avoid;
+              page-break-after: avoid;
             }
           }
         </style>
       </head>
       <body>
         <div class="header">
-          <h1>📍 Territorio General de Predicación</h1>
-          <h2>${congregationName}</h2>
-          <h3>Copiapó, Región de Atacama, Chile</h3>
-          <p>Fecha: ${new Date().toLocaleDateString('es-CL')}</p>
+          <h1>📍 Territorio General - ${congregationName}</h1>
+          <p>Copiapó, Atacama - ${new Date().toLocaleDateString('es-CL')}</p>
         </div>
         
         <div class="info">
