@@ -394,7 +394,9 @@ export default class extends Controller {
     }
     
     try {
-      await apiClient.patch(`/congregations/${window.currentCongregationId}`, data)
+      const response = await apiClient.patch(`/congregations/${window.currentCongregationId}`, data)
+      console.log("Save response:", response)
+      
       alert('✅ Zona principal guardada exitosamente')
       this.clearDemarcation()
       
@@ -406,12 +408,20 @@ export default class extends Controller {
           'territories--congregation'
         )
         if (congregationController) {
+          // Store current ID to restore after reload
+          const currentId = window.currentCongregationId
+          console.log("Reloading congregations, current ID:", currentId)
+          
           // Reload all congregations to update the list
           await congregationController.loadCongregations()
-          // Then reload the polygon for the current congregation
-          if (congregationController.loadPolygon) {
-            await congregationController.loadPolygon()
-          }
+          
+          // Make sure currentIdValue is set correctly
+          congregationController.currentIdValue = currentId
+          congregationController.filterTarget.value = currentId
+          window.currentCongregationId = currentId
+          
+          // Note: loadPolygon is already called by populateFilter if has geometry
+          console.log("Congregations reloaded, polygon should be visible")
         }
       }
     } catch (error) {
