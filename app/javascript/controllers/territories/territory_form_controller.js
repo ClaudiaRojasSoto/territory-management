@@ -103,14 +103,24 @@ export default class extends Controller {
     const layer = this.drawnItems.getLayers()[0]
     const coordinates = layer.getLatLngs()[0].map(latLng => [latLng.lng, latLng.lat])
     
+    // Close the polygon (first point must equal last point for PostGIS)
+    if (coordinates.length > 0) {
+      const firstPoint = coordinates[0]
+      const lastPoint = coordinates[coordinates.length - 1]
+      if (firstPoint[0] !== lastPoint[0] || firstPoint[1] !== lastPoint[1]) {
+        coordinates.push([firstPoint[0], firstPoint[1]])
+      }
+    }
+    
     // Calculate center
     let centerLat = 0, centerLng = 0
-    coordinates.forEach(coord => {
+    const pointsForCenter = coordinates.slice(0, -1) // Exclude last point (duplicate of first)
+    pointsForCenter.forEach(coord => {
       centerLng += coord[0]
       centerLat += coord[1]
     })
-    centerLat /= coordinates.length
-    centerLng /= coordinates.length
+    centerLat /= pointsForCenter.length
+    centerLng /= pointsForCenter.length
     
     const territoryData = {
       name: name || null, // Will be auto-generated on backend if null
@@ -313,14 +323,24 @@ export default class extends Controller {
     // Get polygon coordinates
     const coordinates = this.currentDrawingLayer.getLatLngs()[0].map(latLng => [latLng.lng, latLng.lat])
     
+    // Close the polygon (first point must equal last point for PostGIS)
+    if (coordinates.length > 0) {
+      const firstPoint = coordinates[0]
+      const lastPoint = coordinates[coordinates.length - 1]
+      if (firstPoint[0] !== lastPoint[0] || firstPoint[1] !== lastPoint[1]) {
+        coordinates.push([firstPoint[0], firstPoint[1]])
+      }
+    }
+    
     // Calculate center
     let centerLat = 0, centerLng = 0
-    coordinates.forEach(coord => {
+    const pointsForCenter = coordinates.slice(0, -1) // Exclude last point (duplicate of first)
+    pointsForCenter.forEach(coord => {
       centerLng += coord[0]
       centerLat += coord[1]
     })
-    centerLat /= coordinates.length
-    centerLng /= coordinates.length
+    centerLat /= pointsForCenter.length
+    centerLng /= pointsForCenter.length
     
     const territoryData = {
       name: name || null,
