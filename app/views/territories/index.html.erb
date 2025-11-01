@@ -1,4 +1,4 @@
-<div class="container-fluid" data-controller="hello territories--map territories--congregation territories--territory-list">
+<div class="container-fluid" data-controller="hello territories--map territories--congregation territories--territory-list territories--territory-map">
   <div class="row">
     <div class="col-md-3 sidebar">
       <div class="sidebar-content">
@@ -222,60 +222,19 @@
     console.log("loadMainCongregationPolygon called - now managed by congregation controller")
   }
   
-  // Function to display territories on map
+  // NOW MANAGED BY territories--territory-map CONTROLLER
+  // Keeping reference for backwards compatibility
   function displayTerritories(territories) {
-    // Clear existing territories
-    map.eachLayer((layer) => {
-      if (layer.feature && layer.feature.properties && layer.feature.properties.type === 'territory') {
-        map.removeLayer(layer);
+    // Get territory-map controller and call its render method
+    const element = document.querySelector('[data-controller~="territories--territory-map"]')
+    if (element) {
+      const controller = Stimulus.controllers.find(c => 
+        c.element === element && c.identifier === 'territories--territory-map'
+      )
+      if (controller && controller.render) {
+        controller.render(territories)
       }
-    });
-    
-    territories.forEach(territory => {
-      const layer = L.geoJSON(territory, {
-        style: function(feature) {
-          const status = feature.properties.status;
-          let color = '#6c757d'; // default
-          
-          switch(status) {
-            case 'available':
-              color = '#28a745'; // green
-              break;
-            case 'assigned':
-              color = '#ffc107'; // yellow
-              break;
-            case 'completed':
-              color = '#17a2b8'; // blue
-              break;
-            case 'returned':
-              color = '#dc3545'; // red
-              break;
-          }
-          
-          return {
-            fillColor: color,
-            weight: 2,
-            opacity: 1,
-            color: '#000',
-            fillOpacity: 0.6
-          };
-        },
-        onEachFeature: function(feature, layer) {
-          const properties = feature.properties;
-          
-          // Popup on click
-          layer.bindPopup(`
-            <h6>${properties.number ? `#${properties.number} - ` : ''}${properties.name}</h6>
-            <p><strong>Status:</strong> ${properties.status}</p>
-            <p><strong>Area:</strong> ${properties.area} acres</p>
-            <p><strong>Assigned to:</strong> ${properties.assigned_to || 'Not assigned'}</p>
-          `);
-          
-          // Mark as territory to clean it later
-          layer.feature = { properties: { type: 'territory' } };
-        }
-      }).addTo(map);
-    });
+    }
   }
   
   // NOW MANAGED BY territories--territory-list CONTROLLER

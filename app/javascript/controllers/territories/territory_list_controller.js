@@ -27,11 +27,7 @@ export default class extends Controller {
       
       this.territories = data
       this.render()
-      
-      // Also trigger map rendering (temporary coupling)
-      if (typeof displayTerritories === 'function') {
-        displayTerritories(data)
-      }
+      this.renderOnMap(data)
     } catch (error) {
       console.error('Error loading territories:', error)
     }
@@ -109,8 +105,13 @@ export default class extends Controller {
     
     // Also update map display
     const filteredTerritories = this.getFilteredTerritories()
+    this.renderOnMap(filteredTerritories)
+  }
+  
+  renderOnMap(territories) {
+    // Try to use territory-map controller if available
     if (typeof displayTerritories === 'function') {
-      displayTerritories(filteredTerritories)
+      displayTerritories(territories)
     }
   }
   
