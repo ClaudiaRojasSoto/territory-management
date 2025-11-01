@@ -71,16 +71,23 @@ export default class extends Controller {
         <p>3. Haz clic en "Cerrar Polígono" cuando termines</p>
         <p>4. Haz clic en "Guardar Zona Principal" para guardar</p>
       </div>
-      <button class="btn btn-primary" style="margin: 5px;" data-action="click->territories--main-territory#beginDemarcation">
+      <button id="start-demarcation-btn" class="btn btn-primary" style="margin: 5px;">
         🚀 Iniciar
       </button>
-      <button class="btn btn-secondary" style="margin: 5px;" data-action="click->territories--main-territory#closeInstructions">
+      <button id="cancel-demarcation-btn" class="btn btn-secondary" style="margin: 5px;">
         ❌ Cancelar
       </button>
     `
     
     document.body.appendChild(instructionsDiv)
     this.instructionsDiv = instructionsDiv
+    
+    // Add event listeners
+    const startBtn = instructionsDiv.querySelector('#start-demarcation-btn')
+    const cancelBtn = instructionsDiv.querySelector('#cancel-demarcation-btn')
+    
+    startBtn.addEventListener('click', () => this.beginDemarcation())
+    cancelBtn.addEventListener('click', () => this.closeInstructions())
   }
   
   closeInstructions() {
@@ -199,17 +206,19 @@ export default class extends Controller {
       <div style="text-align: center; margin-bottom: 10px;">
         <strong>Puntos marcados: 0</strong>
       </div>
-      <button class="btn btn-success btn-sm" style="width: 100%; margin-top: 5px;" 
-              data-action="click->territories--main-territory#closePolygon">
+      <button id="close-polygon-btn" class="btn btn-success btn-sm" style="width: 100%; margin-top: 5px;">
         🔒 Cerrar Polígono
       </button>
-      <button class="btn btn-warning btn-sm" style="width: 100%; margin-top: 5px;"
-              data-action="click->territories--main-territory#clearDemarcation">
+      <button id="clear-demarcation-btn" class="btn btn-warning btn-sm" style="width: 100%; margin-top: 5px;">
         🗑️ Limpiar Todo
       </button>
     `
     map.getContainer().appendChild(manualCloseDiv)
     this.manualCloseDiv = manualCloseDiv
+    
+    // Add event listeners
+    manualCloseDiv.querySelector('#close-polygon-btn').addEventListener('click', () => this.closePolygon())
+    manualCloseDiv.querySelector('#clear-demarcation-btn').addEventListener('click', () => this.clearDemarcation())
   }
   
   closePolygon() {
@@ -270,18 +279,23 @@ export default class extends Controller {
     saveDiv.innerHTML = `
       <h5 style="margin-bottom: 15px;">🎯 Polígono Cerrado</h5>
       <p style="margin-bottom: 15px;">Puntos marcados: <strong>${this.demarcationPoints.length - 1}</strong></p>
-      <button class="btn btn-success btn-lg me-2" data-action="click->territories--main-territory#save">
+      <button id="save-main-territory-btn" class="btn btn-success btn-lg me-2">
         💾 Guardar Zona Principal
       </button>
-      <button class="btn btn-warning btn-lg me-2" data-action="click->territories--main-territory#clearDemarcation">
+      <button id="clear-main-territory-btn" class="btn btn-warning btn-lg me-2">
         🗑️ Limpiar Todo
       </button>
-      <button class="btn btn-secondary btn-lg" data-action="click->territories--main-territory#cancel">
+      <button id="cancel-main-territory-btn" class="btn btn-secondary btn-lg">
         ❌ Cancelar
       </button>
     `
     map.getContainer().appendChild(saveDiv)
     this.saveDiv = saveDiv
+    
+    // Add event listeners
+    saveDiv.querySelector('#save-main-territory-btn').addEventListener('click', () => this.save())
+    saveDiv.querySelector('#clear-main-territory-btn').addEventListener('click', () => this.clearDemarcation())
+    saveDiv.querySelector('#cancel-main-territory-btn').addEventListener('click', () => this.cancel())
   }
   
   clearDemarcation() {
