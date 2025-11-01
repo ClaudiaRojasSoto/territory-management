@@ -24,7 +24,6 @@
         <div class="territories-list" 
              id="territories-list"
              data-territories--territory-list-target="list">
-          <!-- Territories will be loaded here dynamically -->
         </div>
         
         <div class="mt-3">
@@ -36,7 +35,6 @@
             🗺️ Demarcar Zona Principal de la Congregación
           </button>
           
-          <!-- Main Territory Controls -->
           <div id="main-territory-controls" 
                style="display: none;" 
                class="mb-3 p-3 border rounded bg-light"
@@ -81,7 +79,6 @@
   </div>
 </div>
 
-<!-- Modal for new territory -->
 <div class="modal fade" 
      id="new-territory-modal" 
      tabindex="-1"
@@ -136,13 +133,6 @@
 <%= stylesheet_link_tag "https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" %>
 
 <script>
-  // Main map with Leaflet - NOW MANAGED BY territories--map CONTROLLER
-  // const map = L.map('map').setView([-27.3668, -70.3314], 16);
-  // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  //   attribution: '© OpenStreetMap contributors'
-  // }).addTo(map);
-  
-  // Get map reference from Stimulus controller (dynamic getter)
   Object.defineProperty(window, 'map', {
     get: function() {
       return window.territoryMap;
@@ -150,21 +140,14 @@
     configurable: true
   });
   
-  // NOW MANAGED BY territories--territory-form CONTROLLER
-  // Drawing map and tools initialization moved to controller
-  
-  // Load congregations and territories on initialization
-  // Esperar a que el mapa esté listo (inicializado por el controlador)
   function initializeWhenMapReady() {
     if (window.territoryMap && window.mainLayerGroup) {
       loadCongregations();
     } else {
-      // Reintentar después de un corto delay
       setTimeout(initializeWhenMapReady, 100);
     }
   }
   
-  // Iniciar la carga cuando el DOM esté listo
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeWhenMapReady);
   } else {
@@ -173,30 +156,19 @@
   
   let currentCongregationId = null;
 
-  // NOW MANAGED BY territories--congregation CONTROLLER
-  // function loadCongregations() { ... }
-  // Keeping loadCongregations reference for backwards compatibility
   function loadCongregations() {
     console.log("loadCongregations called - now managed by congregation controller")
   }
 
-  // NOW MANAGED BY territories--territory-list CONTROLLER
-  // Keeping reference for backwards compatibility
   function loadTerritories() {
     console.log("loadTerritories called - now managed by territory-list controller")
   }
 
-  // NOW MANAGED BY territories--congregation CONTROLLER
-  // function loadMainCongregationPolygon() { ... }
-  // Keeping reference for backwards compatibility
   function loadMainCongregationPolygon() {
     console.log("loadMainCongregationPolygon called - now managed by congregation controller")
   }
   
-  // NOW MANAGED BY territories--territory-map CONTROLLER
-  // Keeping reference for backwards compatibility
   function displayTerritories(territories) {
-    // Get territory-map controller and call its render method
     const element = document.querySelector('[data-controller~="territories--territory-map"]')
     if (element) {
       const controller = Stimulus.controllers.find(c => 
@@ -208,16 +180,7 @@
     }
   }
   
-  // NOW MANAGED BY territories--territory-list CONTROLLER
-  // function updateTerritoriesList(territories) { ... }
   function updateTerritoriesList(territories) {
     console.log("updateTerritoriesList called - now managed by territory-list controller")
   }
-  
-  // NOW MANAGED BY territories--territory-list CONTROLLER
-  // Filter by status handler removed - now in controller
-  
-  // NOW MANAGED BY territories--territory-form CONTROLLER
-  // Save territory function moved to controller
-  
 </script>
