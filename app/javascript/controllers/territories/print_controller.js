@@ -81,30 +81,40 @@ export default class extends Controller {
             }
             
             @media print {
+              @page {
+                margin: 0.5cm;
+              }
               html, body {
                 margin: 0 !important;
                 padding: 0 !important;
-                height: 100vh !important;
-                width: 100vw !important;
+                width: 100% !important;
                 overflow: hidden !important;
               }
               .no-print { 
                 display: none !important; 
               }
               .header {
-                display: none !important;
-              }
-              .map-container {
-                height: 100vh !important;
-                width: 100vw !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                border: none !important;
+                padding: 5px !important;
+                margin: 0 0 5px 0 !important;
+                background-color: #f8f9fa !important;
                 page-break-inside: avoid;
                 page-break-after: avoid;
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
+              }
+              .header h1 {
+                font-size: 18px !important;
+                margin: 0 !important;
+              }
+              .header p {
+                font-size: 12px !important;
+                margin: 0 !important;
+              }
+              .map-container {
+                height: calc(100vh - 80px) !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: 2px solid #000 !important;
+                page-break-inside: avoid;
               }
             }
           </style>
@@ -155,16 +165,6 @@ export default class extends Controller {
               }).addTo(printMap);
               
               printMap.fitBounds(polygon.getBounds(), { padding: [5, 5], maxZoom: 19 });
-              
-              // Remove elements completely when printing starts
-              window.onbeforeprint = function() {
-                document.querySelector('.header').remove();
-                document.querySelector('.no-print').remove();
-                document.body.style.margin = '0';
-                document.body.style.padding = '0';
-                document.body.style.overflow = 'hidden';
-                document.documentElement.style.overflow = 'hidden';
-              };
             };
           <\/script>
         </body>
@@ -249,33 +249,50 @@ export default class extends Controller {
             margin: 10px 0; 
           }
           @media print {
+            @page {
+              margin: 0.5cm;
+            }
             html, body {
               margin: 0 !important;
               padding: 0 !important;
-              height: 100vh !important;
-              width: 100vw !important;
+              width: 100% !important;
               overflow: hidden !important;
             }
             .no-print { 
               display: none !important; 
             }
             .header {
-              display: none !important;
+              padding: 5px !important;
+              margin: 0 0 5px 0 !important;
+              background-color: #f8f9fa !important;
+              page-break-inside: avoid;
+              page-break-after: avoid;
+            }
+            .header h1 {
+              font-size: 18px !important;
+              margin: 0 !important;
+            }
+            .header h2 {
+              font-size: 14px !important;
+              margin: 0 !important;
+            }
+            .header p {
+              font-size: 11px !important;
+              margin: 0 !important;
             }
             .info {
               display: none !important;
             }
+            .coordinates {
+              display: none !important;
+            }
             .map-container {
-              height: 100vh !important;
-              width: 100vw !important;
+              height: calc(100vh - 100px) !important;
+              width: 100% !important;
               margin: 0 !important;
               padding: 0 !important;
-              border: none !important;
+              border: 2px solid #ffc107 !important;
               page-break-inside: avoid;
-              page-break-after: avoid;
-              position: fixed !important;
-              top: 0 !important;
-              left: 0 !important;
             }
           }
         </style>
@@ -342,22 +359,6 @@ export default class extends Controller {
             }).addTo(printMap);
             
             printMap.fitBounds(polygon.getBounds(), { padding: [30, 30], maxZoom: 19 });
-            
-            // Remove elements completely when printing starts
-            window.onbeforeprint = function() {
-              const header = document.querySelector('.header');
-              const info = document.querySelector('.info');
-              const coords = document.querySelector('.coordinates');
-              const noPrint = document.querySelector('.no-print');
-              if (header) header.remove();
-              if (info) info.remove();
-              if (coords) coords.remove();
-              if (noPrint) noPrint.remove();
-              document.body.style.margin = '0';
-              document.body.style.padding = '0';
-              document.body.style.overflow = 'hidden';
-              document.documentElement.style.overflow = 'hidden';
-            };
           };
         <\/script>
       </body>
@@ -429,33 +430,50 @@ export default class extends Controller {
             margin: 20px 0; 
           }
           @media print {
+            @page {
+              margin: 0.5cm;
+            }
             html, body {
               margin: 0 !important;
               padding: 0 !important;
-              height: 100vh !important;
-              width: 100vw !important;
+              width: 100% !important;
               overflow: hidden !important;
             }
             .no-print { 
               display: none !important; 
             }
             .header {
-              display: none !important;
+              padding: 5px !important;
+              margin: 0 0 5px 0 !important;
+              background-color: #f8f9fa !important;
+              page-break-inside: avoid;
+              page-break-after: avoid;
+            }
+            .header h1 {
+              font-size: 18px !important;
+              margin: 0 !important;
+            }
+            .header h2 {
+              font-size: 14px !important;
+              margin: 0 !important;
+            }
+            .header p {
+              font-size: 11px !important;
+              margin: 0 !important;
             }
             .info {
               display: none !important;
             }
+            .coordinates {
+              display: none !important;
+            }
             .map-container {
-              height: 100vh !important;
-              width: 100vw !important;
+              height: calc(100vh - 100px) !important;
+              width: 100% !important;
               margin: 0 !important;
               padding: 0 !important;
-              border: none !important;
+              border: 2px solid #28a745 !important;
               page-break-inside: avoid;
-              page-break-after: avoid;
-              position: fixed !important;
-              top: 0 !important;
-              left: 0 !important;
             }
           }
         </style>
@@ -517,20 +535,6 @@ export default class extends Controller {
             }).addTo(printMap);
             
             printMap.fitBounds(polygon.getBounds(), { padding: [30, 30], maxZoom: 19 });
-            
-            // Remove elements completely when printing starts
-            window.onbeforeprint = function() {
-              const header = document.querySelector('.header');
-              const info = document.querySelector('.info');
-              const noPrint = document.querySelector('.no-print');
-              if (header) header.remove();
-              if (info) info.remove();
-              if (noPrint) noPrint.remove();
-              document.body.style.margin = '0';
-              document.body.style.padding = '0';
-              document.body.style.overflow = 'hidden';
-              document.documentElement.style.overflow = 'hidden';
-            };
           };
         <\/script>
       </body>
