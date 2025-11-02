@@ -349,7 +349,7 @@
           <div class="tab-content" id="authTabContent">
             <!-- Tab de Login -->
             <div class="tab-pane fade show active" id="login" role="tabpanel">
-              <%= form_for(@resource, as: @resource_name, url: user_session_path) do |f| %>
+              <%= form_for(@resource, as: @resource_name, url: user_session_path, html: { data: { turbo: false } }) do |f| %>
                 <div class="mb-3">
                   <%= f.label :email, "Correo Electrónico", class: "form-label" %>
                   <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control", placeholder: "tu@email.com" %>
@@ -377,7 +377,7 @@
 
             <!-- Tab de Registro -->
             <div class="tab-pane fade" id="register" role="tabpanel">
-              <%= form_for(@resource, as: @resource_name, url: user_registration_path) do |f| %>
+              <%= form_for(@resource, as: @resource_name, url: user_registration_path, html: { data: { turbo: false } }) do |f| %>
                 <%= render "devise/shared/error_messages", resource: @resource %>
 
                 <div class="mb-3">
