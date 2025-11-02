@@ -175,7 +175,144 @@
   </div>
 </div>
 
+<!-- Modal para ver detalles del territorio -->
+<div class="modal fade" id="territoryDetailModal" tabindex="-1" data-bs-backdrop="true" data-bs-keyboard="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="territoryDetailTitle">Detalle del Territorio</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="territoryModalCloseBtn"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-6" style="display: none;">
+            <h6>Información del Territorio</h6>
+            <div id="territoryDetailInfo"></div>
+          </div>
+          <div class="col-12">
+            <div id="territoryDetailMap" style="height: 500px; border: 2px solid #ddd; border-radius: 5px;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" 
+                class="btn btn-primary" 
+                id="printTerritoryFromModal">
+          🖨️ Imprimir
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="territoryModalCloseFooterBtn">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <%= javascript_include_tag "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" %>
 <%= stylesheet_link_tag "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" %>
 <%= javascript_include_tag "https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js" %>
 <%= stylesheet_link_tag "https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" %>
+
+<script>
+  // Handle print button and modal close functionality
+  document.addEventListener('DOMContentLoaded', () => {
+    const printBtn = document.getElementById('printTerritoryFromModal')
+    if (printBtn) {
+      printBtn.addEventListener('click', () => {
+        if (window.currentDetailTerritoryId && window.printTerritory) {
+          window.printTerritory(window.currentDetailTerritoryId, window.currentDetailTerritoryName)
+        }
+      })
+    }
+    
+    // Function to close territory detail modal
+    window.closeTerritoryDetailModal = function() {
+      const modalElement = document.getElementById('territoryDetailModal')
+      if (!modalElement) return
+      
+      // Destroy the Leaflet map instance before closing
+      if (window.territoryDetailMapInstance) {
+        try {
+          window.territoryDetailMapInstance.remove()
+          window.territoryDetailMapInstance = null
+        } catch (e) {
+          console.log('Error removing map on close:', e)
+        }
+      }
+      
+      // Clear map container
+      const mapContainer = document.getElementById('territoryDetailMap')
+      if (mapContainer) {
+        mapContainer.innerHTML = ''
+      }
+      
+      // Try Bootstrap API first
+      try {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+          const modalInstance = bootstrap.Modal.getInstance(modalElement)
+          if (modalInstance) {
+            modalInstance.hide()
+          } else {
+            const modal = new bootstrap.Modal(modalElement)
+            modal.hide()
+          }
+        } else if (typeof $ !== 'undefined') {
+          $(modalElement).modal('hide')
+        } else {
+          // Manual hide
+          modalElement.classList.remove('show')
+          modalElement.style.display = 'none'
+          document.body.classList.remove('modal-open')
+          
+          // Remove backdrop
+          const backdrop = document.querySelector('.modal-backdrop')
+          if (backdrop) {
+            backdrop.remove()
+          }
+        }
+      } catch (error) {
+        console.error('Error closing modal:', error)
+        // Force close
+        modalElement.classList.remove('show')
+        modalElement.style.display = 'none'
+        document.body.classList.remove('modal-open')
+        
+        // Remove backdrop
+        const backdrop = document.querySelector('.modal-backdrop')
+        if (backdrop) {
+          backdrop.remove()
+        }
+      }
+    }
+    
+    // Add click handlers for close buttons
+    const closeBtn = document.getElementById('territoryModalCloseBtn')
+    const closeFooterBtn = document.getElementById('territoryModalCloseFooterBtn')
+    
+    if (closeBtn) {
+      closeBtn.addEventListener('click', window.closeTerritoryDetailModal)
+    }
+    
+    if (closeFooterBtn) {
+      closeFooterBtn.addEventListener('click', window.closeTerritoryDetailModal)
+    }
+    
+    // Close when clicking outside the modal
+    const modalElement = document.getElementById('territoryDetailModal')
+    if (modalElement) {
+      modalElement.addEventListener('click', (e) => {
+        if (e.target === modalElement) {
+          window.closeTerritoryDetailModal()
+        }
+      })
+    }
+    
+    // Close with Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const modalElement = document.getElementById('territoryDetailModal')
+        if (modalElement && modalElement.classList.contains('show')) {
+          window.closeTerritoryDetailModal()
+        }
+      }
+    })
+  })
+</script>
