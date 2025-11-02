@@ -1,0 +1,122 @@
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h1 class="h2">🗺️ Gestión de Territorios</h1>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item" role="presentation">
+      <a class="nav-link" href="<%= admin_dashboard_path %>">
+        📊 Dashboard
+      </a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link" href="<%= admin_users_path %>">
+        👥 Usuarios
+      </a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link" href="<%= admin_congregations_path %>">
+        🏛️ Congregaciones
+      </a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link active" href="<%= admin_territories_path %>">
+        🗺️ Territorios
+      </a>
+    </li>
+  </ul>
+
+  <!-- Territories Table -->
+  <div class="card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Lista de Territorios (<%= @territories.count %>)</h5>
+      <div>
+        <small class="text-muted me-2">
+          Disponibles: <%= @territories.where(status: 'available').count %>
+        </small>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>#</th>
+              <th>Nombre</th>
+              <th>Congregación</th>
+              <th>Estado</th>
+              <th>Asignado a</th>
+              <th>Área</th>
+              <th>Fecha Creación</th>
+              <th>Fecha Asignación</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @territories.any? %>
+              <% @territories.each do |territory| %>
+                <tr>
+                  <td><strong>#<%= territory.id %></strong></td>
+                  <td>
+                    <span class="badge bg-dark">
+                      T<%= territory.number %>
+                    </span>
+                  </td>
+                  <td><%= territory.name %></td>
+                  <td>
+                    <% if territory.congregation %>
+                      <small><%= territory.congregation.name %></small>
+                    <% else %>
+                      <span class="text-muted">Sin asignar</span>
+                    <% end %>
+                  </td>
+                  <td>
+                    <span class="badge bg-<%= territory.status == 'available' ? 'success' : territory.status == 'assigned' ? 'warning' : territory.status == 'completed' ? 'info' : 'secondary' %>">
+                      <%= territory.status.capitalize %>
+                    </span>
+                  </td>
+                  <td>
+                    <% if territory.assigned_to %>
+                      <small><%= territory.assigned_to.name %></small>
+                    <% else %>
+                      <span class="text-muted">-</span>
+                    <% end %>
+                  </td>
+                  <td>
+                    <% if territory.area_in_acres %>
+                      <small><%= territory.area_in_acres %> acres</small>
+                    <% else %>
+                      <span class="text-muted">-</span>
+                    <% end %>
+                  </td>
+                  <td><small><%= territory.created_at.strftime('%d/%m/%Y') %></small></td>
+                  <td>
+                    <% if territory.assigned_at %>
+                      <small><%= territory.assigned_at.strftime('%d/%m/%Y') %></small>
+                    <% else %>
+                      <span class="text-muted">-</span>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="9" class="text-center text-muted py-4">
+                  No hay territorios registrados
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Alert -->
+  <div class="alert alert-info mt-4" role="alert">
+    <strong>ℹ️ Nota:</strong> La gestión completa de territorios (editar, eliminar, reasignar) se implementará próximamente. Por ahora puedes ver la lista completa y estadísticas de todos los territorios.
+  </div>
+</div>

@@ -1,0 +1,174 @@
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h1 class="h2">⚙️ Panel de Administración</h1>
+      <p class="text-muted">Bienvenido, <%= current_user.name %></p>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item" role="presentation">
+      <a class="nav-link active" href="<%= admin_dashboard_path %>">
+        📊 Dashboard
+      </a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link" href="<%= admin_users_path %>">
+        👥 Usuarios
+      </a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link" href="<%= admin_congregations_path %>">
+        🏛️ Congregaciones
+      </a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link" href="<%= admin_territories_path %>">
+        🗺️ Territorios
+      </a>
+    </li>
+  </ul>
+
+  <!-- Statistics Cards -->
+  <div class="row mb-4">
+    <div class="col-md-3 mb-3">
+      <div class="card text-white bg-primary">
+        <div class="card-body">
+          <h5 class="card-title">👥 Usuarios</h5>
+          <h2 class="mb-0"><%= @stats[:total_users] %></h2>
+          <small><%= @stats[:active_users] %> activos</small>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+      <div class="card text-white bg-success">
+        <div class="card-body">
+          <h5 class="card-title">🏛️ Congregaciones</h5>
+          <h2 class="mb-0"><%= @stats[:total_congregations] %></h2>
+          <small>Total registradas</small>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+      <div class="card text-white bg-info">
+        <div class="card-body">
+          <h5 class="card-title">🗺️ Territorios</h5>
+          <h2 class="mb-0"><%= @stats[:total_territories] %></h2>
+          <small><%= @stats[:available_territories] %> disponibles</small>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+      <div class="card text-white bg-warning">
+        <div class="card-body">
+          <h5 class="card-title">📋 Asignados</h5>
+          <h2 class="mb-0"><%= @stats[:assigned_territories] %></h2>
+          <small><%= @stats[:completed_territories] %> completados</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="row">
+    <div class="col-md-6 mb-4">
+      <div class="card">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">👥 Usuarios Recientes</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Rol</th>
+                  <th>Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @recent_users.each do |user| %>
+                  <tr>
+                    <td><%= user.name %></td>
+                    <td><small><%= user.email %></small></td>
+                    <td>
+                      <span class="badge bg-<%= user.admin? ? 'danger' : 'secondary' %>">
+                        <%= user.role %>
+                      </span>
+                    </td>
+                    <td><small><%= user.created_at.strftime('%d/%m/%Y') %></small></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer bg-white text-center">
+          <%= link_to 'Ver todos los usuarios →', admin_users_path, class: 'text-decoration-none' %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+      <div class="card">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">🗺️ Territorios Recientes</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>#</th>
+                  <th>Nombre</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @recent_territories.each do |territory| %>
+                  <tr>
+                    <td><strong>#<%= territory.number %></strong></td>
+                    <td><%= territory.name %></td>
+                    <td>
+                      <span class="badge bg-<%= territory.status == 'available' ? 'success' : territory.status == 'assigned' ? 'warning' : 'info' %>">
+                        <%= territory.status %>
+                      </span>
+                    </td>
+                    <td><small><%= territory.created_at.strftime('%d/%m/%Y') %></small></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer bg-white text-center">
+          <%= link_to 'Ver todos los territorios →', admin_territories_path, class: 'text-decoration-none' %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">⚡ Acciones Rápidas</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-flex gap-2 flex-wrap">
+            <%= link_to '➕ Nuevo Usuario', admin_users_path, class: 'btn btn-primary' %>
+            <%= link_to '➕ Nueva Congregación', admin_congregations_path, class: 'btn btn-success' %>
+            <%= link_to '🗺️ Ir al Mapa', root_path, class: 'btn btn-info' %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

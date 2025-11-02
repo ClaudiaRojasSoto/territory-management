@@ -1,4 +1,12 @@
 Rails.application.routes.draw do
+  # Admin panel routes (only for admin users)
+  scope '/admin', as: 'admin' do
+    get 'dashboard', to: 'admin#dashboard'
+    get 'users', to: 'admin#users'
+    get 'congregations', to: 'admin#congregations'
+    get 'territories', to: 'admin#territories'
+  end
+  
   # Devise routes for authentication
   devise_for :users, path: '', path_names: {
     sign_in: 'login',

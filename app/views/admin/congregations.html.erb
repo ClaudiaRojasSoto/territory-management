@@ -1,0 +1,89 @@
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h1 class="h2">🏛️ Gestión de Congregaciones</h1>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <ul class="nav nav-tabs mb-4" role="tablist">
+    <li class="nav-item" role="presentation">
+      <a class="nav-link" href="<%= admin_dashboard_path %>">
+        📊 Dashboard
+      </a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link" href="<%= admin_users_path %>">
+        👥 Usuarios
+      </a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link active" href="<%= admin_congregations_path %>">
+        🏛️ Congregaciones
+      </a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link" href="<%= admin_territories_path %>">
+        🗺️ Territorios
+      </a>
+    </li>
+  </ul>
+
+  <!-- Congregations Table -->
+  <div class="card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Lista de Congregaciones (<%= @congregations.count %>)</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Ciudad</th>
+              <th>País</th>
+              <th>Usuarios</th>
+              <th>Territorios</th>
+              <th>Fecha Creación</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @congregations.any? %>
+              <% @congregations.each do |congregation| %>
+                <tr>
+                  <td><strong>#<%= congregation.id %></strong></td>
+                  <td><%= congregation.name %></td>
+                  <td><%= congregation.city || '-' %></td>
+                  <td><%= congregation.country || '-' %></td>
+                  <td class="text-center">
+                    <span class="badge bg-primary">
+                      <%= User.where(congregation_id: congregation.id).count %>
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-success">
+                      <%= Territory.where(congregation_id: congregation.id).count %>
+                    </span>
+                  </td>
+                  <td><small><%= congregation.created_at.strftime('%d/%m/%Y') %></small></td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="7" class="text-center text-muted py-4">
+                  No hay congregaciones registradas
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Alert -->
+  <div class="alert alert-info mt-4" role="alert">
+    <strong>ℹ️ Nota:</strong> La gestión completa de congregaciones (crear, editar, eliminar) se implementará próximamente. Por ahora puedes ver la lista y estadísticas de todas las congregaciones.
+  </div>
+</div>

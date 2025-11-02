@@ -40,9 +40,9 @@
                   <li><hr class="dropdown-divider"></li>
                   <% if current_user.admin? %>
                     <li>
-                      <a class="dropdown-item" href="#">
+                      <%= link_to admin_dashboard_path, class: "dropdown-item" do %>
                         ⚙️ Panel Admin
-                      </a>
+                      <% end %>
                     </li>
                     <li><hr class="dropdown-divider"></li>
                   <% end %>
