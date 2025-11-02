@@ -357,7 +357,12 @@
 
                 <div class="mb-3">
                   <%= f.label :password, "Contraseña", class: "form-label" %>
-                  <%= f.password_field :password, autocomplete: "current-password", class: "form-control", placeholder: "········" %>
+                  <div class="input-group">
+                    <%= f.password_field :password, autocomplete: "current-password", class: "form-control", placeholder: "········", id: "login-password-field" %>
+                    <button class="btn btn-outline-secondary" type="button" id="toggle-login-password">
+                      <span id="eye-icon-login">👁️</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div class="mb-3 form-check">
@@ -407,12 +412,22 @@
 
                 <div class="mb-3">
                   <%= f.label :password, "Contraseña * (mínimo 6 caracteres)", class: "form-label" %>
-                  <%= f.password_field :password, autocomplete: "new-password", class: "form-control", placeholder: "········", required: true %>
+                  <div class="input-group">
+                    <%= f.password_field :password, autocomplete: "new-password", class: "form-control", placeholder: "········", required: true, id: "register-password-field" %>
+                    <button class="btn btn-outline-secondary" type="button" id="toggle-register-password">
+                      <span id="eye-icon-register">👁️</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div class="mb-3">
                   <%= f.label :password_confirmation, "Confirmar Contraseña *", class: "form-label" %>
-                  <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control", placeholder: "········", required: true %>
+                  <div class="input-group">
+                    <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control", placeholder: "········", required: true, id: "register-password-confirmation-field" %>
+                    <button class="btn btn-outline-secondary" type="button" id="toggle-register-password-confirmation">
+                      <span id="eye-icon-register-confirmation">👁️</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div class="d-grid">
@@ -454,6 +469,54 @@
       L.marker([-27.3668, -70.3314]).addTo(publicMap)
         .bindPopup('<b>🗺️ Territory App</b><br>Inicia sesión para gestionar territorios')
         .openPopup()
+      
+      // Toggle password visibility for login
+      const toggleLoginPassword = document.getElementById('toggle-login-password')
+      if (toggleLoginPassword) {
+        toggleLoginPassword.addEventListener('click', () => {
+          const passwordField = document.getElementById('login-password-field')
+          const eyeIcon = document.getElementById('eye-icon-login')
+          if (passwordField.type === 'password') {
+            passwordField.type = 'text'
+            eyeIcon.textContent = '🙈'
+          } else {
+            passwordField.type = 'password'
+            eyeIcon.textContent = '👁️'
+          }
+        })
+      }
+      
+      // Toggle password visibility for registration
+      const toggleRegisterPassword = document.getElementById('toggle-register-password')
+      if (toggleRegisterPassword) {
+        toggleRegisterPassword.addEventListener('click', () => {
+          const passwordField = document.getElementById('register-password-field')
+          const eyeIcon = document.getElementById('eye-icon-register')
+          if (passwordField.type === 'password') {
+            passwordField.type = 'text'
+            eyeIcon.textContent = '🙈'
+          } else {
+            passwordField.type = 'password'
+            eyeIcon.textContent = '👁️'
+          }
+        })
+      }
+      
+      // Toggle password confirmation visibility for registration
+      const toggleRegisterPasswordConfirmation = document.getElementById('toggle-register-password-confirmation')
+      if (toggleRegisterPasswordConfirmation) {
+        toggleRegisterPasswordConfirmation.addEventListener('click', () => {
+          const passwordField = document.getElementById('register-password-confirmation-field')
+          const eyeIcon = document.getElementById('eye-icon-register-confirmation')
+          if (passwordField.type === 'password') {
+            passwordField.type = 'text'
+            eyeIcon.textContent = '🙈'
+          } else {
+            passwordField.type = 'password'
+            eyeIcon.textContent = '👁️'
+          }
+        })
+      }
     })
   </script>
 <% end %>

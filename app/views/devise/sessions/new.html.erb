@@ -13,7 +13,12 @@
 
             <div class="mb-3">
               <%= f.label :password, "Contraseña", class: "form-label" %>
-              <%= f.password_field :password, autocomplete: "current-password", class: "form-control", placeholder: "········" %>
+              <div class="input-group">
+                <%= f.password_field :password, autocomplete: "current-password", class: "form-control", placeholder: "········", id: "devise-login-password" %>
+                <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('devise-login-password', 'devise-eye-icon')">
+                  <span id="devise-eye-icon">👁️</span>
+                </button>
+              </div>
             </div>
 
             <% if devise_mapping.rememberable? %>
@@ -36,3 +41,17 @@
     </div>
   </div>
 </div>
+
+<script>
+  function togglePasswordVisibility(fieldId, iconId) {
+    const passwordField = document.getElementById(fieldId)
+    const eyeIcon = document.getElementById(iconId)
+    if (passwordField.type === 'password') {
+      passwordField.type = 'text'
+      eyeIcon.textContent = '🙈'
+    } else {
+      passwordField.type = 'password'
+      eyeIcon.textContent = '👁️'
+    }
+  }
+</script>
