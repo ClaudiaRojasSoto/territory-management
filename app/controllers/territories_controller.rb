@@ -3,6 +3,9 @@ class TerritoriesController < ApplicationController
 
   def index
     @territories = Territory.all
+    # For Devise forms in the view when user is not signed in
+    @resource = User.new
+    @resource_name = :user
   end
 
   def show
