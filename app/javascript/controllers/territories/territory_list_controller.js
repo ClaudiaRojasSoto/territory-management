@@ -163,10 +163,26 @@ export default class extends Controller {
   async initTerritoryMap(properties) {
     // Remove existing map if any
     const mapContainer = document.getElementById('territoryDetailMap')
+    
+    // Destroy previous Leaflet map instance if exists
+    if (window.territoryDetailMapInstance) {
+      try {
+        window.territoryDetailMapInstance.remove()
+        window.territoryDetailMapInstance = null
+      } catch (e) {
+        console.log('Error removing previous map:', e)
+      }
+    }
+    
+    // Clear container
     mapContainer.innerHTML = ''
+    
+    // Small delay to ensure DOM is ready
+    await new Promise(resolve => setTimeout(resolve, 100))
     
     // Create new map
     const detailMap = L.map('territoryDetailMap')
+    window.territoryDetailMapInstance = detailMap
     
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
