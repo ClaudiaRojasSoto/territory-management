@@ -107,9 +107,14 @@ export default class extends Controller {
   }
   
   async showTerritoryMapModal(properties) {
+    console.log('Opening territory detail modal for:', properties.name)
+    
     // Update modal title
     const title = `${properties.number ? `#${properties.number} - ` : ''}${properties.name}`
-    document.getElementById('territoryDetailTitle').textContent = title
+    const titleElement = document.getElementById('territoryDetailTitle')
+    if (titleElement) {
+      titleElement.textContent = title
+    }
     
     // Make sure info is hidden and map is full width
     const infoParent = document.getElementById('territoryDetailInfo')?.parentElement
@@ -132,14 +137,48 @@ export default class extends Controller {
     window.currentDetailTerritoryId = properties.id
     window.currentDetailTerritoryName = properties.name
     
-    // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('territoryDetailModal'))
-    modal.show()
+    // Store properties for map initialization
+    window.currentTerritoryProperties = properties
     
-    // Initialize map after modal is shown
-    document.getElementById('territoryDetailModal').addEventListener('shown.bs.modal', async () => {
-      await this.initTerritoryDetailMap(properties)
-    }, { once: true })
+    // Show modal - try multiple methods
+    const modalElement = document.getElementById('territoryDetailModal')
+    if (!modalElement) {
+      console.error('Modal element not found!')
+      return
+    }
+    
+    // Try Bootstrap 5 Modal API
+    try {
+      if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        const modal = new bootstrap.Modal(modalElement)
+        modal.show()
+        
+        // Initialize map after modal is shown
+        modalElement.addEventListener('shown.bs.modal', async () => {
+          await this.initTerritoryDetailMap(properties)
+        }, { once: true })
+      } else {
+        // Fallback: use data-bs-toggle
+        console.log('Using jQuery Bootstrap fallback')
+        $(modalElement).modal('show')
+        
+        // Initialize map after modal is shown
+        $(modalElement).one('shown.bs.modal', async () => {
+          await this.initTerritoryDetailMap(properties)
+        })
+      }
+    } catch (error) {
+      console.error('Error showing modal:', error)
+      // Last resort: just show it manually
+      modalElement.classList.add('show')
+      modalElement.style.display = 'block'
+      document.body.classList.add('modal-open')
+      
+      // Initialize map immediately
+      setTimeout(() => {
+        this.initTerritoryDetailMap(properties)
+      }, 300)
+    }
   }
   
   async initTerritoryDetailMap(properties) {

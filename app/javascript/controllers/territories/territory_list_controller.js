@@ -79,30 +79,75 @@ export default class extends Controller {
   async showTerritoryMapModal(territory) {
     const properties = territory.properties
     
+    console.log('Opening territory detail modal from list for:', properties.name)
+    
     // Update modal title
     const title = `${properties.number ? `#${properties.number} - ` : ''}${properties.name}`
-    document.getElementById('territoryDetailTitle').textContent = title
+    const titleElement = document.getElementById('territoryDetailTitle')
+    if (titleElement) {
+      titleElement.textContent = title
+    }
     
     // Hide the info section, only show map
-    document.getElementById('territoryDetailInfo').parentElement.classList.add('d-none')
-    document.querySelector('#territoryDetailMap').parentElement.classList.remove('col-md-6')
-    document.querySelector('#territoryDetailMap').parentElement.classList.add('col-12')
+    const infoParent = document.getElementById('territoryDetailInfo')?.parentElement
+    if (infoParent) {
+      infoParent.style.display = 'none'
+    }
+    
+    const mapParent = document.querySelector('#territoryDetailMap')?.parentElement
+    if (mapParent) {
+      mapParent.className = 'col-12'
+    }
     
     // Update map to full height
-    document.getElementById('territoryDetailMap').style.height = '500px'
+    const mapElement = document.getElementById('territoryDetailMap')
+    if (mapElement) {
+      mapElement.style.height = '500px'
+    }
     
     // Store territory ID for print button
     window.currentDetailTerritoryId = properties.id
     window.currentDetailTerritoryName = properties.name
     
-    // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('territoryDetailModal'))
-    modal.show()
+    // Show modal - try multiple methods
+    const modalElement = document.getElementById('territoryDetailModal')
+    if (!modalElement) {
+      console.error('Modal element not found!')
+      return
+    }
     
-    // Initialize map after modal is shown
-    document.getElementById('territoryDetailModal').addEventListener('shown.bs.modal', async () => {
-      await this.initTerritoryMap(properties)
-    }, { once: true })
+    // Try Bootstrap 5 Modal API
+    try {
+      if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        const modal = new bootstrap.Modal(modalElement)
+        modal.show()
+        
+        // Initialize map after modal is shown
+        modalElement.addEventListener('shown.bs.modal', async () => {
+          await this.initTerritoryMap(properties)
+        }, { once: true })
+      } else {
+        // Fallback: use jQuery Bootstrap
+        console.log('Using jQuery Bootstrap fallback')
+        $(modalElement).modal('show')
+        
+        // Initialize map after modal is shown
+        $(modalElement).one('shown.bs.modal', async () => {
+          await this.initTerritoryMap(properties)
+        })
+      }
+    } catch (error) {
+      console.error('Error showing modal:', error)
+      // Last resort: just show it manually
+      modalElement.classList.add('show')
+      modalElement.style.display = 'block'
+      document.body.classList.add('modal-open')
+      
+      // Initialize map immediately
+      setTimeout(() => {
+        this.initTerritoryMap(properties)
+      }, 300)
+    }
   }
   
   async initTerritoryMap(properties) {
