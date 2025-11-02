@@ -1,21 +1,41 @@
 class User < ApplicationRecord
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
-  # TODO: Uncomment when Devise is installed and configured
-  # devise :database_authenticatable, :registerable,
-  #        :recoverable, :rememberable, :validatable
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :validatable
          
   # Relaciones
+  belongs_to :congregation, optional: true
   has_many :assigned_territories, class_name: 'Territory', foreign_key: 'assigned_to_id'
   
   # Validaciones
   validates :name, presence: true
   validates :email, presence: true, uniqueness: true
+  validates :role, presence: true, inclusion: { in: %w[admin anciano auxiliar publicador] }
   
   # Scopes
   scope :active, -> { where(active: true) }
+  scope :admins, -> { where(role: 'admin') }
+  scope :by_congregation, ->(congregation_id) { where(congregation_id: congregation_id) }
   
-  # Métodos
+  # Métodos de roles
+  def admin?
+    role == 'admin'
+  end
+  
+  def anciano?
+    role == 'anciano'
+  end
+  
+  def auxiliar?
+    role == 'auxiliar'
+  end
+  
+  def publicador?
+    role == 'publicador'
+  end
+  
+  # Métodos existentes
   def full_name
     name.presence || email
   end

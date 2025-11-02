@@ -1,4 +1,13 @@
 Rails.application.routes.draw do
+  # Devise routes for authentication
+  devise_for :users, path: '', path_names: {
+    sign_in: 'login',
+    sign_out: 'logout',
+    sign_up: 'registro'
+  }, controllers: {
+    registrations: 'users/registrations'
+  }
+  
   # Root route
   root "territories#index"
   
