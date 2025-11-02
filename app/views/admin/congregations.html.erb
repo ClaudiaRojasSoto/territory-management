@@ -41,10 +41,10 @@
             <tr>
               <th>ID</th>
               <th>Nombre</th>
-              <th>Ciudad</th>
-              <th>País</th>
+              <th>Descripción</th>
               <th>Usuarios</th>
               <th>Territorios</th>
+              <th>Tiene Zona Principal</th>
               <th>Fecha Creación</th>
             </tr>
           </thead>
@@ -54,8 +54,7 @@
                 <tr>
                   <td><strong>#<%= congregation.id %></strong></td>
                   <td><%= congregation.name %></td>
-                  <td><%= congregation.city || '-' %></td>
-                  <td><%= congregation.country || '-' %></td>
+                  <td><small><%= congregation.description.present? ? congregation.description.truncate(50) : '-' %></small></td>
                   <td class="text-center">
                     <span class="badge bg-primary">
                       <%= User.where(congregation_id: congregation.id).count %>
@@ -65,6 +64,13 @@
                     <span class="badge bg-success">
                       <%= Territory.where(congregation_id: congregation.id).count %>
                     </span>
+                  </td>
+                  <td class="text-center">
+                    <% if congregation.boundaries.present? %>
+                      <span class="badge bg-success">✓ Sí</span>
+                    <% else %>
+                      <span class="badge bg-secondary">✗ No</span>
+                    <% end %>
                   </td>
                   <td><small><%= congregation.created_at.strftime('%d/%m/%Y') %></small></td>
                 </tr>
