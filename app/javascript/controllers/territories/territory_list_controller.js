@@ -143,6 +143,16 @@ export default class extends Controller {
       modalElement.style.display = 'block'
       document.body.classList.add('modal-open')
       
+      // Create backdrop manually
+      const backdrop = document.createElement('div')
+      backdrop.className = 'modal-backdrop fade show'
+      backdrop.onclick = () => {
+        if (window.closeTerritoryDetailModal) {
+          window.closeTerritoryDetailModal()
+        }
+      }
+      document.body.appendChild(backdrop)
+      
       // Initialize map immediately
       setTimeout(() => {
         this.initTerritoryMap(properties)

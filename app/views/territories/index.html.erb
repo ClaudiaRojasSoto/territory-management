@@ -176,12 +176,12 @@
 </div>
 
 <!-- Modal para ver detalles del territorio -->
-<div class="modal fade" id="territoryDetailModal" tabindex="-1">
+<div class="modal fade" id="territoryDetailModal" tabindex="-1" data-bs-backdrop="true" data-bs-keyboard="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="territoryDetailTitle">Detalle del Territorio</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="territoryModalCloseBtn"></button>
       </div>
       <div class="modal-body">
         <div class="row">
@@ -200,7 +200,7 @@
                 id="printTerritoryFromModal">
           🖨️ Imprimir
         </button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="territoryModalCloseFooterBtn">Cerrar</button>
       </div>
     </div>
   </div>
@@ -212,7 +212,7 @@
 <%= stylesheet_link_tag "https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" %>
 
 <script>
-  // Handle print button from territory detail modal
+  // Handle print button and modal close functionality
   document.addEventListener('DOMContentLoaded', () => {
     const printBtn = document.getElementById('printTerritoryFromModal')
     if (printBtn) {
@@ -222,5 +222,81 @@
         }
       })
     }
+    
+    // Function to close territory detail modal
+    window.closeTerritoryDetailModal = function() {
+      const modalElement = document.getElementById('territoryDetailModal')
+      if (!modalElement) return
+      
+      // Try Bootstrap API first
+      try {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+          const modalInstance = bootstrap.Modal.getInstance(modalElement)
+          if (modalInstance) {
+            modalInstance.hide()
+          } else {
+            const modal = new bootstrap.Modal(modalElement)
+            modal.hide()
+          }
+        } else if (typeof $ !== 'undefined') {
+          $(modalElement).modal('hide')
+        } else {
+          // Manual hide
+          modalElement.classList.remove('show')
+          modalElement.style.display = 'none'
+          document.body.classList.remove('modal-open')
+          
+          // Remove backdrop
+          const backdrop = document.querySelector('.modal-backdrop')
+          if (backdrop) {
+            backdrop.remove()
+          }
+        }
+      } catch (error) {
+        console.error('Error closing modal:', error)
+        // Force close
+        modalElement.classList.remove('show')
+        modalElement.style.display = 'none'
+        document.body.classList.remove('modal-open')
+        
+        // Remove backdrop
+        const backdrop = document.querySelector('.modal-backdrop')
+        if (backdrop) {
+          backdrop.remove()
+        }
+      }
+    }
+    
+    // Add click handlers for close buttons
+    const closeBtn = document.getElementById('territoryModalCloseBtn')
+    const closeFooterBtn = document.getElementById('territoryModalCloseFooterBtn')
+    
+    if (closeBtn) {
+      closeBtn.addEventListener('click', window.closeTerritoryDetailModal)
+    }
+    
+    if (closeFooterBtn) {
+      closeFooterBtn.addEventListener('click', window.closeTerritoryDetailModal)
+    }
+    
+    // Close when clicking outside the modal
+    const modalElement = document.getElementById('territoryDetailModal')
+    if (modalElement) {
+      modalElement.addEventListener('click', (e) => {
+        if (e.target === modalElement) {
+          window.closeTerritoryDetailModal()
+        }
+      })
+    }
+    
+    // Close with Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const modalElement = document.getElementById('territoryDetailModal')
+        if (modalElement && modalElement.classList.contains('show')) {
+          window.closeTerritoryDetailModal()
+        }
+      }
+    })
   })
 </script>
