@@ -1,8 +1,8 @@
-// Utilidades para trabajar con Leaflet
-// Este archivo contiene funciones auxiliares para inicializar y configurar mapas
+// Utilities for working with Leaflet
+// This file contains helper functions to initialize and configure maps
 
 export class LeafletHelper {
-  // Crea un mapa básico con configuración por defecto
+  // Creates a basic map with default configuration
   static createMap(containerId, options = {}) {
     const defaults = {
       lat: -27.3668,
@@ -16,13 +16,13 @@ export class LeafletHelper {
     
     const map = L.map(containerId).setView([config.lat, config.lng], config.zoom)
     
-    // Agregar capa de OpenStreetMap
+    // Add OpenStreetMap tile layer
     this.addTileLayer(map)
     
     return map
   }
   
-  // Agrega la capa de tiles de OpenStreetMap
+  // Adds OpenStreetMap tile layer
   static addTileLayer(map) {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
@@ -32,7 +32,7 @@ export class LeafletHelper {
     return map
   }
   
-  // Crea un control de dibujo para Leaflet
+  // Creates a draw control for Leaflet
   static createDrawControl(featureGroup, options = {}) {
     const defaults = {
       draw: {
@@ -40,7 +40,7 @@ export class LeafletHelper {
           allowIntersection: false,
           drawError: {
             color: '#e1e100',
-            message: '<strong>Error:</strong> El polígono no puede intersectarse consigo mismo'
+            message: '<strong>Error:</strong> The polygon cannot intersect itself'
           },
           shapeOptions: {
             color: '#3388ff',
@@ -65,7 +65,7 @@ export class LeafletHelper {
     return new L.Control.Draw(config)
   }
   
-  // Estilos predefinidos por tipo de territorio
+  // Predefined styles by territory type
   static getStyleByStatus(status) {
     const styles = {
       available: {
@@ -109,12 +109,12 @@ export class LeafletHelper {
     return styles[status] || styles.default
   }
   
-  // Convierte un layer de Leaflet a GeoJSON
+  // Converts a Leaflet layer to GeoJSON
   static layerToGeoJSON(layer) {
     return layer.toGeoJSON()
   }
   
-  // Centra el mapa en una geometría
+  // Centers the map on a geometry
   static fitBounds(map, geoJSON) {
     const layer = L.geoJSON(geoJSON)
     const bounds = layer.getBounds()
@@ -124,17 +124,17 @@ export class LeafletHelper {
     }
   }
   
-  // Remueve todas las capas excepto la base (tiles)
+  // Removes all layers except the base (tiles)
   static clearLayers(map, exceptTileLayer = true) {
     map.eachLayer((layer) => {
       if (exceptTileLayer && layer instanceof L.TileLayer) {
-        return // Mantener la capa de tiles
+        return // Keep the tile layer
       }
       map.removeLayer(layer)
     })
   }
   
-  // Crea un popup con contenido HTML
+  // Creates a popup with HTML content
   static createPopup(content, options = {}) {
     const defaults = {
       maxWidth: 300,
@@ -144,7 +144,7 @@ export class LeafletHelper {
     return L.popup({ ...defaults, ...options }).setContent(content)
   }
   
-  // Obtiene el centro de un GeoJSON
+  // Gets the center of a GeoJSON
   static getCenter(geoJSON) {
     const layer = L.geoJSON(geoJSON)
     const bounds = layer.getBounds()
