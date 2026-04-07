@@ -20,8 +20,13 @@
         <span class="navbar-brand mb-0 h6">🗺️ Territory Management</span>
         <div class="ms-auto d-flex align-items-center gap-3">
           <span class="text-white-50 small"><%= current_user.full_name %></span>
-          <% if current_user.congregations.any? %>
-            <span class="badge bg-secondary"><%= current_user.congregations.count %> congregación(es)</span>
+          <% if current_user.super_admin? %>
+            <span class="badge bg-warning text-dark">Super Admin</span>
+            <%= link_to "Panel Admin", admin_root_path, class: "btn btn-sm btn-warning" %>
+          <% elsif current_user.congregation_memberships.admin.exists? %>
+            <span class="badge bg-primary">Admin</span>
+          <% else %>
+            <span class="badge bg-secondary">Publicador</span>
           <% end %>
           <%= button_to "Cerrar sesión", destroy_user_session_path, method: :delete,
                 class: "btn btn-sm btn-outline-light" %>

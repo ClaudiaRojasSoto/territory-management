@@ -77,6 +77,10 @@ gem "rgeo-geojson"
 gem "devise"
 gem "pundit"
 
+# Admin panel
+gem "activeadmin"
+gem "sassc-rails"
+
 # Background jobs
 gem "sidekiq"
 

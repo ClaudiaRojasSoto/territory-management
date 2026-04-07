@@ -31,13 +31,47 @@
         </div>
 
         <hr>
-        <p class="text-muted" style="font-size: 0.9em;">Congregación</p>
 
-        <div class="mb-3">
-          <%= f.label :congregation_name, "Nombre de tu congregación", class: "form-label" %>
-          <%= f.text_field :congregation_name, class: "form-control", placeholder: "Ej: Congregación Copiapó", value: params.dig(:user, :congregation_name) %>
-          <div class="form-text">Se creará automáticamente si no existe.</div>
-        </div>
+        <% invitation_token = params.dig(:user, :invitation_token).presence || params[:invitation_token].presence %>
+        <% if invitation_token %>
+          <div class="alert alert-success d-flex align-items-center mb-3" role="alert">
+            <span>Tienes una invitación activa. Al crear tu cuenta quedarás vinculado a la congregación correspondiente.</span>
+          </div>
+          <%= f.hidden_field :invitation_token, value: invitation_token %>
+        <% else %>
+          <p class="text-muted" style="font-size: 0.9em; margin-bottom: 0.5rem;">¿Cómo quieres unirte?</p>
+
+          <ul class="nav nav-tabs mb-3" id="joinTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="new-tab" data-bs-toggle="tab" data-bs-target="#new-congregation" type="button" role="tab">
+                Crear mi congregación
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="invite-tab" data-bs-toggle="tab" data-bs-target="#with-invitation" type="button" role="tab">
+                Tengo un código de invitación
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content mb-3" id="joinTabsContent">
+            <div class="tab-pane fade show active" id="new-congregation" role="tabpanel">
+              <div class="mb-2">
+                <%= f.label :congregation_name, "Nombre de tu congregación", class: "form-label" %>
+                <%= f.text_field :congregation_name, class: "form-control", placeholder: "Ej: Congregación Copiapó", value: params.dig(:user, :congregation_name) %>
+                <div class="form-text">Quedarás como administrador de esta congregación.</div>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="with-invitation" role="tabpanel">
+              <div class="mb-2">
+                <%= f.label :invitation_token, "Código de invitación", class: "form-label" %>
+                <%= f.text_field :invitation_token, class: "form-control", placeholder: "Pega aquí el código recibido", value: params.dig(:user, :invitation_token) %>
+                <div class="form-text">El administrador de tu congregación te enviará este código.</div>
+              </div>
+            </div>
+          </div>
+        <% end %>
 
         <%= f.submit "Crear cuenta", class: "btn btn-primary w-100" %>
       <% end %>

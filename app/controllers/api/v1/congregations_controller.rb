@@ -3,7 +3,8 @@ class Api::V1::CongregationsController < ApplicationController
   skip_before_action :verify_authenticity_token, only: [:create, :update, :destroy]
 
   def index
-    render json: current_user.congregations.map(&:to_geojson)
+    congregations = current_user.super_admin? ? Congregation.all : current_user.congregations
+    render json: congregations.map(&:to_geojson)
   end
 
   def show
@@ -11,8 +12,9 @@ class Api::V1::CongregationsController < ApplicationController
   end
 
   def create
-    congregation = current_user.congregations.build(congregation_params)
+    congregation = Congregation.new(congregation_params)
     if congregation.save
+      CongregationMembership.create!(user: current_user, congregation: congregation, role: :admin)
       render json: congregation.to_geojson, status: :created
     else
       render json: { errors: congregation.errors.full_messages }, status: :unprocessable_entity
@@ -20,8 +22,9 @@ class Api::V1::CongregationsController < ApplicationController
   end
 
   def update
+    require_congregation_admin!(@congregation)
     if @congregation.update(congregation_params)
-      @congregation.reload # Force reload from database to get fresh geometry
+      @congregation.reload
       render json: @congregation.to_geojson
     else
       render json: { errors: @congregation.errors.full_messages }, status: :unprocessable_entity
@@ -29,6 +32,7 @@ class Api::V1::CongregationsController < ApplicationController
   end
 
   def destroy
+    require_congregation_admin!(@congregation)
     @congregation.destroy
     head :no_content
   end
@@ -36,7 +40,11 @@ class Api::V1::CongregationsController < ApplicationController
   private
 
   def set_congregation
-    @congregation = current_user.congregations.find(params[:id])
+    @congregation = accessible_congregations.find(params[:id])
+  end
+
+  def accessible_congregations
+    current_user.super_admin? ? Congregation.all : current_user.congregations
   end
 
   def congregation_params
@@ -78,9 +86,4 @@ class Api::V1::CongregationsController < ApplicationController
 
     ActionController::Parameters.new(attributes).permit(:name, :description, :boundaries, :center)
   end
-
-  def api_congregation_params
-    params.permit(:name, :description, boundaries: [:type, coordinates: []], center: [:lng, :lat])
-  end
 end
-

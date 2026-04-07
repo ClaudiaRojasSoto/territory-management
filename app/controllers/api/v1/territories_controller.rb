@@ -58,7 +58,13 @@ class Api::V1::TerritoriesController < ApplicationController
   end
 
   def scoped_territories
-    Territory.where(congregation_id: current_user.congregation_ids)
+    if current_user.super_admin?
+      Territory.all
+    elsif current_user.congregation_memberships.admin.exists?
+      Territory.where(congregation_id: current_user.admin_congregation_ids)
+    else
+      current_user.assigned_territories
+    end
   end
 
   def territory_params

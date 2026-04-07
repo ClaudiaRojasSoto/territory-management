@@ -10,10 +10,35 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_04_07_000002) do
+ActiveRecord::Schema[7.1].define(version: 2026_04_07_235416) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "postgis"
+
+  create_table "active_admin_comments", force: :cascade do |t|
+    t.string "namespace"
+    t.text "body"
+    t.string "resource_type"
+    t.bigint "resource_id"
+    t.string "author_type"
+    t.bigint "author_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_type", "author_id"], name: "index_active_admin_comments_on_author"
+    t.index ["namespace"], name: "index_active_admin_comments_on_namespace"
+    t.index ["resource_type", "resource_id"], name: "index_active_admin_comments_on_resource"
+  end
+
+  create_table "congregation_memberships", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "congregation_id", null: false
+    t.integer "role", default: 1, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["congregation_id"], name: "index_congregation_memberships_on_congregation_id"
+    t.index ["user_id", "congregation_id"], name: "index_congregation_memberships_on_user_id_and_congregation_id", unique: true
+    t.index ["user_id"], name: "index_congregation_memberships_on_user_id"
+  end
 
   create_table "congregations", force: :cascade do |t|
     t.string "name", null: false
@@ -22,10 +47,20 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_07_000002) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.geography "center", limit: {:srid=>4326, :type=>"st_point", :geographic=>true}
-    t.bigint "user_id"
     t.index ["boundaries"], name: "index_congregations_on_boundaries", using: :gist
     t.index ["name"], name: "index_congregations_on_name"
-    t.index ["user_id"], name: "index_congregations_on_user_id"
+  end
+
+  create_table "invitations", force: :cascade do |t|
+    t.string "token", null: false
+    t.bigint "congregation_id", null: false
+    t.integer "role", default: 1, null: false
+    t.datetime "used_at"
+    t.datetime "expires_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["congregation_id"], name: "index_invitations_on_congregation_id"
+    t.index ["token"], name: "index_invitations_on_token", unique: true
   end
 
   create_table "territories", force: :cascade do |t|
@@ -59,14 +94,14 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_07_000002) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "name"
-    t.bigint "congregation_id"
-    t.index ["congregation_id"], name: "index_users_on_congregation_id"
+    t.boolean "super_admin", default: false, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
-  add_foreign_key "congregations", "users"
+  add_foreign_key "congregation_memberships", "congregations"
+  add_foreign_key "congregation_memberships", "users"
+  add_foreign_key "invitations", "congregations"
   add_foreign_key "territories", "congregations"
   add_foreign_key "territories", "users", column: "assigned_to_id"
-  add_foreign_key "users", "congregations"
 end

@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  ActiveAdmin.routes(self)
+
   devise_for :users, controllers: { registrations: 'users/registrations' }
 
   root "territories#index"
@@ -15,6 +17,7 @@ Rails.application.routes.draw do
           patch :complete
         end
       end
+      resources :invitations, only: [:create]
     end
   end
 

@@ -1,10 +1,10 @@
 class Congregation < ApplicationRecord
-  belongs_to :user, optional: true
-
+  has_many :congregation_memberships, dependent: :destroy
+  has_many :members, through: :congregation_memberships, source: :user
   has_many :territories, dependent: :destroy
+  has_many :invitations, dependent: :destroy
 
   validates :name, presence: true
-  # Permitir nil para poder borrar la zona principal
 
   def to_geojson
     {
