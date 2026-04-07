@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { LeafletHelper } from "../shared/leaflet_helper"
+import { LeafletHelper } from "controllers/shared/leaflet_helper"
 
 // Connects to data-controller="territories--map"
 export default class extends Controller {

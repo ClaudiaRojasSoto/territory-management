@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import apiClient from "../shared/api_client"
+import apiClient from "controllers/shared/api_client"
 
 // Connects to data-controller="territories--main-territory"
 export default class extends Controller {

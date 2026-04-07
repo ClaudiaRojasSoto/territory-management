@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
-import apiClient from "../shared/api_client"
-import { LeafletHelper } from "../shared/leaflet_helper"
+import apiClient from "controllers/shared/api_client"
+import { LeafletHelper } from "controllers/shared/leaflet_helper"
 
 // Connects to data-controller="territories--congregation"
 export default class extends Controller {
