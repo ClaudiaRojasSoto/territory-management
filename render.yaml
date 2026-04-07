@@ -1,0 +1,61 @@
+databases:
+  - name: territory-db
+    databaseName: territory_app_production
+    user: territory_user
+    plan: free
+    postgresMajorVersion: "15"
+
+services:
+  - type: redis
+    name: territory-redis
+    plan: free
+    maxmemoryPolicy: noeviction
+
+  - type: web
+    name: territory-management
+    env: ruby
+    plan: free
+    region: oregon
+    buildCommand: "./bin/render-build.sh"
+    startCommand: "bundle exec puma -C config/puma.rb"
+    healthCheckPath: /up
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_SERVE_STATIC_FILES
+        value: "true"
+      - key: RAILS_LOG_TO_STDOUT
+        value: "true"
+      - key: RAILS_MASTER_KEY
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: territory-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: territory-redis
+          property: connectionString
+
+  - type: worker
+    name: territory-sidekiq
+    env: ruby
+    plan: free
+    region: oregon
+    buildCommand: "bundle install"
+    startCommand: "bundle exec sidekiq"
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_MASTER_KEY
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: territory-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: territory-redis
+          property: connectionString
