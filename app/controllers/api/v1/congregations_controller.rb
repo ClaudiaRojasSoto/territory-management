@@ -3,7 +3,7 @@ class Api::V1::CongregationsController < ApplicationController
   skip_before_action :verify_authenticity_token, only: [:create, :update, :destroy]
 
   def index
-    render json: current_user_congregations.map(&:to_geojson)
+    render json: current_user.congregations.map(&:to_geojson)
   end
 
   def show
@@ -11,9 +11,8 @@ class Api::V1::CongregationsController < ApplicationController
   end
 
   def create
-    congregation = Congregation.new(congregation_params)
+    congregation = current_user.congregations.build(congregation_params)
     if congregation.save
-      current_user.update(congregation: congregation) unless current_user.congregation_id?
       render json: congregation.to_geojson, status: :created
     else
       render json: { errors: congregation.errors.full_messages }, status: :unprocessable_entity
@@ -37,13 +36,7 @@ class Api::V1::CongregationsController < ApplicationController
   private
 
   def set_congregation
-    @congregation = current_user_congregations.find(params[:id])
-  end
-
-  def current_user_congregations
-    return Congregation.where(id: current_user.congregation_id) if current_user.congregation_id?
-
-    Congregation.none
+    @congregation = current_user.congregations.find(params[:id])
   end
 
   def congregation_params

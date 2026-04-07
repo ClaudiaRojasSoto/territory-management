@@ -58,9 +58,7 @@ class Api::V1::TerritoriesController < ApplicationController
   end
 
   def scoped_territories
-    return Territory.none unless current_user.congregation_id?
-
-    Territory.where(congregation_id: current_user.congregation_id)
+    Territory.where(congregation_id: current_user.congregation_ids)
   end
 
   def territory_params
