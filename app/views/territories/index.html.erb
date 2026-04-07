@@ -4,7 +4,13 @@
       <div class="sidebar-content">
         <h2>Territories</h2>
         <div class="filters mb-3">
-          <label class="form-label">Congregación</label>
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <label class="form-label mb-0">Congregación</label>
+            <button class="btn btn-sm btn-outline-primary"
+                    data-action="click->territories--congregation#openNewForm">
+              + Nueva
+            </button>
+          </div>
           <select class="form-select mb-2" 
                   id="congregation-filter"
                   data-territories--congregation-target="filter"
@@ -201,6 +207,43 @@
           🖨️ Imprimir
         </button>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="territoryModalCloseFooterBtn">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="new-congregation-modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Nueva Congregación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Nombre</label>
+          <input type="text"
+                 class="form-control"
+                 id="new-congregation-name"
+                 data-territories--congregation-target="nameInput"
+                 placeholder="Ej: Congregación Norte">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Descripción (opcional)</label>
+          <textarea class="form-control"
+                    id="new-congregation-description"
+                    data-territories--congregation-target="descriptionInput"
+                    rows="2"></textarea>
+        </div>
+        <div data-territories--congregation-target="formError" class="alert alert-danger d-none"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button"
+                class="btn btn-primary"
+                data-action="click->territories--congregation#create">
+          Guardar
+        </button>
       </div>
     </div>
   </div>

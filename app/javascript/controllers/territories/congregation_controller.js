@@ -4,7 +4,7 @@ import { LeafletHelper } from "controllers/shared/leaflet_helper"
 
 // Connects to data-controller="territories--congregation"
 export default class extends Controller {
-  static targets = ["filter", "nameLabel"]
+  static targets = ["filter", "nameLabel", "nameInput", "descriptionInput", "formError"]
   
   static values = {
     currentId: { type: String, default: "" }
@@ -211,6 +211,42 @@ export default class extends Controller {
     }
   }
   
+  openNewForm() {
+    if (this.hasNameInputTarget) this.nameInputTarget.value = ''
+    if (this.hasDescriptionInputTarget) this.descriptionInputTarget.value = ''
+    if (this.hasFormErrorTarget) {
+      this.formErrorTarget.textContent = ''
+      this.formErrorTarget.classList.add('d-none')
+    }
+    const modal = new bootstrap.Modal(document.getElementById('new-congregation-modal'))
+    modal.show()
+  }
+
+  async create() {
+    const name = this.hasNameInputTarget ? this.nameInputTarget.value.trim() : ''
+
+    if (!name) {
+      if (this.hasFormErrorTarget) {
+        this.formErrorTarget.textContent = 'El nombre es obligatorio.'
+        this.formErrorTarget.classList.remove('d-none')
+      }
+      return
+    }
+
+    const description = this.hasDescriptionInputTarget ? this.descriptionInputTarget.value.trim() : ''
+
+    try {
+      await apiClient.post('/congregations', { name, description })
+      bootstrap.Modal.getInstance(document.getElementById('new-congregation-modal')).hide()
+      await this.loadCongregations()
+    } catch (error) {
+      if (this.hasFormErrorTarget) {
+        this.formErrorTarget.textContent = 'Error al guardar la congregación.'
+        this.formErrorTarget.classList.remove('d-none')
+      }
+    }
+  }
+
   // Public method to get current congregation ID
   getCurrentId() {
     return this.currentIdValue
