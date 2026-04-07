@@ -10,6 +10,7 @@ services:
     name: territory-redis
     plan: free
     maxmemoryPolicy: noeviction
+    ipAllowList: []
 
   - type: web
     name: territory-management
