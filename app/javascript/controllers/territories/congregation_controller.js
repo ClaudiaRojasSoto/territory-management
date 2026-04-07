@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { Modal } from "bootstrap"
 import apiClient from "controllers/shared/api_client"
 import { LeafletHelper } from "controllers/shared/leaflet_helper"
 
@@ -218,8 +219,7 @@ export default class extends Controller {
       this.formErrorTarget.textContent = ''
       this.formErrorTarget.classList.add('d-none')
     }
-    const modal = new bootstrap.Modal(document.getElementById('new-congregation-modal'))
-    modal.show()
+    new Modal(document.getElementById('new-congregation-modal')).show()
   }
 
   async create() {
@@ -237,7 +237,7 @@ export default class extends Controller {
 
     try {
       await apiClient.post('/congregations', { name, description })
-      bootstrap.Modal.getInstance(document.getElementById('new-congregation-modal')).hide()
+      Modal.getInstance(document.getElementById('new-congregation-modal'))?.hide()
       await this.loadCongregations()
     } catch (error) {
       if (this.hasFormErrorTarget) {
