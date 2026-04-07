@@ -1,5 +1,4 @@
 import { Controller } from "@hotwired/stimulus"
-import { Modal } from "bootstrap"
 import apiClient from "controllers/shared/api_client"
 import { LeafletHelper } from "controllers/shared/leaflet_helper"
 
@@ -212,14 +211,13 @@ export default class extends Controller {
     }
   }
   
-  openNewForm() {
+  resetNewForm() {
     if (this.hasNameInputTarget) this.nameInputTarget.value = ''
     if (this.hasDescriptionInputTarget) this.descriptionInputTarget.value = ''
     if (this.hasFormErrorTarget) {
       this.formErrorTarget.textContent = ''
       this.formErrorTarget.classList.add('d-none')
     }
-    new Modal(document.getElementById('new-congregation-modal')).show()
   }
 
   async create() {
@@ -237,7 +235,7 @@ export default class extends Controller {
 
     try {
       await apiClient.post('/congregations', { name, description })
-      Modal.getInstance(document.getElementById('new-congregation-modal'))?.hide()
+      document.querySelector('#new-congregation-modal [data-bs-dismiss="modal"]').click()
       await this.loadCongregations()
     } catch (error) {
       if (this.hasFormErrorTarget) {
