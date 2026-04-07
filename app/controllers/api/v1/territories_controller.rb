@@ -3,10 +3,8 @@ class Api::V1::TerritoriesController < ApplicationController
   skip_before_action :verify_authenticity_token, only: [:create, :update, :destroy, :assign, :return, :complete]
 
   def index
-    @territories = Territory.all
-    if params[:congregation_id].present?
-      @territories = @territories.where(congregation_id: params[:congregation_id])
-    end
+    @territories = scoped_territories
+    @territories = @territories.where(congregation_id: params[:congregation_id]) if params[:congregation_id].present?
     render json: @territories.map(&:to_geojson)
   end
 
@@ -56,7 +54,13 @@ class Api::V1::TerritoriesController < ApplicationController
   private
 
   def set_territory
-    @territory = Territory.find(params[:id])
+    @territory = scoped_territories.find(params[:id])
+  end
+
+  def scoped_territories
+    return Territory.none unless current_user.congregation_id?
+
+    Territory.where(congregation_id: current_user.congregation_id)
   end
 
   def territory_params

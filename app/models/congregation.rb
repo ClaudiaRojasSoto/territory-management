@@ -1,5 +1,6 @@
 class Congregation < ApplicationRecord
   has_many :territories, dependent: :destroy
+  has_many :users
 
   validates :name, presence: true
   # Permitir nil para poder borrar la zona principal

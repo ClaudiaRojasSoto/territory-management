@@ -11,6 +11,20 @@
   </head>
 
   <body>
+    <% if user_signed_in? %>
+      <nav class="navbar navbar-expand navbar-dark bg-dark px-3 py-2" style="min-height: 48px;">
+        <span class="navbar-brand mb-0 h6">🗺️ Territory Management</span>
+        <div class="ms-auto d-flex align-items-center gap-3">
+          <span class="text-white-50 small"><%= current_user.full_name %></span>
+          <% if current_user.congregation.present? %>
+            <span class="badge bg-secondary"><%= current_user.congregation.name %></span>
+          <% end %>
+          <%= button_to "Cerrar sesión", destroy_user_session_path, method: :delete,
+                class: "btn btn-sm btn-outline-light" %>
+        </div>
+      </nav>
+    <% end %>
+
     <%= yield %>
   </body>
 </html>

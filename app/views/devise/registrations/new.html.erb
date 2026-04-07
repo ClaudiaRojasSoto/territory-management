@@ -1,0 +1,52 @@
+<div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+  <div class="card shadow" style="width: 100%; max-width: 480px;">
+    <div class="card-body p-4">
+      <h4 class="card-title text-center mb-4">🗺️ Territory Management</h4>
+      <h6 class="text-muted text-center mb-4">Crear cuenta</h6>
+
+      <%= render "devise/shared/error_messages", resource: resource %>
+
+      <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
+        <div class="mb-3">
+          <%= f.label :name, "Nombre completo", class: "form-label" %>
+          <%= f.text_field :name, autofocus: true, autocomplete: "name", class: "form-control", placeholder: "Ej: Luis Álamos" %>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :email, "Correo electrónico", class: "form-label" %>
+          <%= f.email_field :email, autocomplete: "email", class: "form-control" %>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :password, "Contraseña", class: "form-label" %>
+          <% if @minimum_password_length %>
+            <em class="text-muted" style="font-size: 0.85em;">mínimo <%= @minimum_password_length %> caracteres</em>
+          <% end %>
+          <%= f.password_field :password, autocomplete: "new-password", class: "form-control" %>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :password_confirmation, "Confirmar contraseña", class: "form-label" %>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control" %>
+        </div>
+
+        <hr>
+        <p class="text-muted" style="font-size: 0.9em;">Congregación</p>
+
+        <div class="mb-3">
+          <%= f.label :congregation_name, "Nombre de tu congregación", class: "form-label" %>
+          <%= f.text_field :congregation_name, class: "form-control", placeholder: "Ej: Congregación Copiapó", value: params.dig(:user, :congregation_name) %>
+          <div class="form-text">Se creará automáticamente si no existe.</div>
+        </div>
+
+        <%= f.submit "Crear cuenta", class: "btn btn-primary w-100" %>
+      <% end %>
+
+      <hr>
+      <p class="text-center mb-0">
+        ¿Ya tienes cuenta?
+        <%= link_to "Iniciar sesión", new_session_path(resource_name) %>
+      </p>
+    </div>
+  </div>
+</div>
