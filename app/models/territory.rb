@@ -23,8 +23,10 @@ class Territory < ApplicationRecord
   # Métodos geoespaciales
   def area_in_sq_meters
     return nil unless boundaries
-    # boundaries is already an RGeo geometry object
+
     boundaries.area
+  rescue StandardError
+    nil
   end
   
   def area_in_acres

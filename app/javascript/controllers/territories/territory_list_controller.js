@@ -25,6 +25,12 @@ export default class extends Controller {
       const data = await apiClient.get(endpoint)
       
       this.territories = data
+      if (id) {
+        window.__territoriesPrintCache = {
+          congregationId: String(id),
+          features: Array.isArray(data) ? data.slice() : []
+        }
+      }
       this.render()
       this.renderOnMap(data)
     } catch (error) {

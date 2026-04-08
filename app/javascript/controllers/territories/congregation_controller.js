@@ -67,10 +67,20 @@ export default class extends Controller {
       select.value = ''
     } else if (this.currentIdValue) {
       select.value = this.currentIdValue
-      
+      window.currentCongregationId = this.currentIdValue
+
       // Load polygon if has geometry
       if (this.congregationsHasGeometry[this.currentIdValue]) {
         this.loadPolygon()
+      }
+
+      const territoryListEl = document.querySelector('[data-controller~="territories--territory-list"]')
+      if (territoryListEl) {
+        const tl = this.application.getControllerForElementAndIdentifier(
+          territoryListEl,
+          'territories--territory-list'
+        )
+        if (tl && typeof tl.load === 'function') tl.load(this.currentIdValue)
       }
     }
   }

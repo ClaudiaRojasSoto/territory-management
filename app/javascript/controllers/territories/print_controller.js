@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import apiClient from "controllers/shared/api_client"
 
 // Connects to data-controller="territories--print"
 export default class extends Controller {
@@ -7,6 +8,58 @@ export default class extends Controller {
     window.printTerritory = this.printTerritory.bind(this)
     window.printMainTerritory = () => this.printMainTerritory()
     window.printGeneralTerritory = () => this.printGeneralTerritory()
+  }
+
+  resolveCongregationIdForPrint() {
+    const w = window.currentCongregationId
+    if (w != null && String(w).length > 0) return String(w)
+    const sel = document.querySelector('[data-territories--congregation-target="filter"]')
+    if (sel && sel.value) return String(sel.value)
+    return ''
+  }
+
+  ringsFromGeojsonFeatures(feats) {
+    if (!Array.isArray(feats)) return []
+    const rings = []
+    for (const f of feats) {
+      const geom = f && f.geometry
+      if (!geom || !geom.type) continue
+      const { type, coordinates } = geom
+      if (type === 'Polygon' && coordinates && coordinates[0]) {
+        rings.push(coordinates[0].map((c) => [c[1], c[0]]))
+      } else if (type === 'MultiPolygon' && coordinates) {
+        for (const poly of coordinates) {
+          if (poly && poly[0]) rings.push(poly[0].map((c) => [c[1], c[0]]))
+        }
+      }
+    }
+    return rings
+  }
+
+  async fetchSmallTerritoryRingsForPrint(explicitCongregationId = null) {
+    const cid =
+      explicitCongregationId != null && String(explicitCongregationId) !== ''
+        ? String(explicitCongregationId)
+        : this.resolveCongregationIdForPrint()
+    if (!cid) return []
+
+    const cache = window.__territoriesPrintCache
+    if (
+      cache &&
+      String(cache.congregationId) === cid &&
+      Array.isArray(cache.features) &&
+      cache.features.length > 0
+    ) {
+      return this.ringsFromGeojsonFeatures(cache.features)
+    }
+
+    try {
+      const feats = await apiClient.get(`/territories?congregation_id=${encodeURIComponent(cid)}`)
+      return this.ringsFromGeojsonFeatures(feats)
+    } catch (e) {
+      console.warn('Could not load small territories for print:', e)
+      return []
+    }
   }
   
   async printTerritory(territoryId, territoryName) {
@@ -184,7 +237,7 @@ export default class extends Controller {
     }
   }
   
-  printMainTerritory() {
+  async printMainTerritory() {
     // Gather coordinates from various sources
     let coordinates = []
     
@@ -213,10 +266,11 @@ export default class extends Controller {
       alert('No hay zona principal demarcada')
       return
     }
-    
-    const congregationName = (window.congregationsById && 
-                             window.currentCongregationId && 
-                             window.congregationsById[String(window.currentCongregationId)]) || 
+
+    const smallTerritoryRings = await this.fetchSmallTerritoryRingsForPrint()
+    const cid = this.resolveCongregationIdForPrint()
+
+    const congregationName = (window.congregationsById && cid && window.congregationsById[cid]) ||
                              'Zona Principal de la Congregación'
     
     // Build coordinates HTML
@@ -321,6 +375,7 @@ export default class extends Controller {
           <h3>Información de la Zona Principal:</h3>
           <p><strong>Puntos de límite:</strong> ${coordinates.length - 1}</p>
           <p><strong>Tipo:</strong> Zona Principal de Congregación</p>
+          ${smallTerritoryRings.length ? `<p><strong>Territorios pequeños en el mapa:</strong> ${smallTerritoryRings.length}</p>` : ''}
         </div>
         
         <div id="print-map" class="map-container"></div>
@@ -339,6 +394,7 @@ export default class extends Controller {
           // Initialize map when window loads
           window.onload = function() {
             const coords = ${JSON.stringify(coordinates)};
+            const smallRings = ${JSON.stringify(smallTerritoryRings)};
             const printMap = L.map('print-map').setView([${coordinates[0][0]}, ${coordinates[0][1]}], 15);
             
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -352,8 +408,7 @@ export default class extends Controller {
               fillOpacity: 0,
               weight: 3
             }).addTo(printMap);
-            
-            // Create inverse mask to hide everything outside the polygon
+
             const bounds = printMap.getBounds();
             const worldBounds = [
               [bounds.getSouth() - 1, bounds.getWest() - 1],
@@ -362,14 +417,23 @@ export default class extends Controller {
               [bounds.getNorth() + 1, bounds.getWest() - 1],
               [bounds.getSouth() - 1, bounds.getWest() - 1]
             ];
-            
-            // Inverse polygon: outer boundary with inner hole
-            const maskPolygon = L.polygon([worldBounds, coords], {
+
+            L.polygon([worldBounds, coords], {
               color: 'transparent',
               fillColor: 'white',
               fillOpacity: 1,
               weight: 0
             }).addTo(printMap);
+
+            smallRings.forEach((ring) => {
+              if (!ring || ring.length < 3) return
+              L.polygon(ring, {
+                color: '#0d6efd',
+                fillColor: '#0d6efd',
+                fillOpacity: 0.28,
+                weight: 2
+              }).addTo(printMap)
+            })
             
             printMap.fitBounds(polygon.getBounds(), { padding: [20, 20], maxZoom: 18 });
           };
@@ -381,7 +445,7 @@ export default class extends Controller {
     printWindow.document.close()
   }
   
-  printGeneralTerritory() {
+  async printGeneralTerritory() {
     // Gather coordinates from the saved congregation area
     let coordinates = []
     
@@ -410,11 +474,11 @@ export default class extends Controller {
       alert('No hay zona principal de congregación guardada para imprimir')
       return
     }
-    
-    const congregationName = (window.congregationsById && 
-                             window.currentCongregationId && 
-                             window.congregationsById[String(window.currentCongregationId)]) || 
-                             'Congregación'
+
+    const smallTerritoryRings = await this.fetchSmallTerritoryRingsForPrint()
+    const cid = this.resolveCongregationIdForPrint()
+
+    const congregationName = (window.congregationsById && cid && window.congregationsById[cid]) || 'Congregación'
     
     const printWindow = window.open('', '_blank')
     printWindow.document.write(`
@@ -503,6 +567,7 @@ export default class extends Controller {
           <h3>Área de la Congregación:</h3>
           <p><strong>Puntos de límite:</strong> ${coordinates.length - 1}</p>
           <p><strong>Congregación:</strong> ${congregationName}</p>
+          ${smallTerritoryRings.length ? `<p><strong>Territorios pequeños en el mapa:</strong> ${smallTerritoryRings.length}</p>` : ''}
         </div>
         
         <div id="print-map" class="map-container"></div>
@@ -515,6 +580,7 @@ export default class extends Controller {
         <script>
           window.onload = function() {
             const coords = ${JSON.stringify(coordinates)};
+            const smallRings = ${JSON.stringify(smallTerritoryRings)};
             const printMap = L.map('print-map').setView([${coordinates[0][0]}, ${coordinates[0][1]}], 14);
             
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -528,8 +594,7 @@ export default class extends Controller {
               fillOpacity: 0,
               weight: 3
             }).addTo(printMap);
-            
-            // Create inverse mask to hide everything outside the polygon
+
             const bounds = printMap.getBounds();
             const worldBounds = [
               [bounds.getSouth() - 1, bounds.getWest() - 1],
@@ -538,14 +603,23 @@ export default class extends Controller {
               [bounds.getNorth() + 1, bounds.getWest() - 1],
               [bounds.getSouth() - 1, bounds.getWest() - 1]
             ];
-            
-            // Inverse polygon: outer boundary with inner hole
-            const maskPolygon = L.polygon([worldBounds, coords], {
+
+            L.polygon([worldBounds, coords], {
               color: 'transparent',
               fillColor: 'white',
               fillOpacity: 1,
               weight: 0
             }).addTo(printMap);
+
+            smallRings.forEach((ring) => {
+              if (!ring || ring.length < 3) return
+              L.polygon(ring, {
+                color: '#0d6efd',
+                fillColor: '#0d6efd',
+                fillOpacity: 0.28,
+                weight: 2
+              }).addTo(printMap)
+            })
             
             printMap.fitBounds(polygon.getBounds(), { padding: [20, 20], maxZoom: 18 });
           };

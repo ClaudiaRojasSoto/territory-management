@@ -66,7 +66,7 @@ class Api::V1::CongregationsController < ApplicationController
           coords_arr = geojson['coordinates'] || geojson[:coordinates]
           ring = coords_arr[0]
           coords = ring.map { |coord| "#{coord[0]} #{coord[1]}" }.join(', ')
-          attributes[:boundaries] = "POLYGON((#{coords}))"
+          attributes[:boundaries] = "SRID=4326;POLYGON((#{coords}))"
         end
       end
     end
@@ -79,7 +79,7 @@ class Api::V1::CongregationsController < ApplicationController
         lng = center['lng'] || center[:lng]
         lat = center['lat'] || center[:lat]
         if lng.present? && lat.present?
-          attributes[:center] = "POINT(#{lng} #{lat})"
+          attributes[:center] = "SRID=4326;POINT(#{lng} #{lat})"
         end
       end
     end

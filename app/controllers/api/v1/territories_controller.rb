@@ -27,6 +27,12 @@ class Api::V1::TerritoriesController < ApplicationController
     else
       render json: { errors: @territory.errors.full_messages }, status: :unprocessable_entity
     end
+  rescue ActiveRecord::RecordNotUnique => e
+    Rails.logger.warn("[Territories#create] RecordNotUnique: #{e.message}")
+    render json: { errors: ['Ese número de territorio ya existe en esta congregación.'] }, status: :unprocessable_entity
+  rescue ActiveRecord::StatementInvalid => e
+    Rails.logger.error("[Territories#create] StatementInvalid: #{e.message}")
+    render json: { errors: ['No se pudo guardar la geometría. Comprueba que el polígono sea válido e inténtalo de nuevo.'] }, status: :unprocessable_entity
   end
 
   def update
@@ -83,7 +89,8 @@ class Api::V1::TerritoriesController < ApplicationController
     attributes[:description] = raw['description'] || raw[:description]
     attributes[:status] = raw['status'] || raw[:status]
     attributes[:assigned_to_id] = raw['assigned_to_id'] || raw[:assigned_to_id]
-    attributes[:congregation_id] = raw['congregation_id'] || raw[:congregation_id]
+    cid = raw['congregation_id'] || raw[:congregation_id]
+    attributes[:congregation_id] = cid.present? ? (Integer(cid) rescue nil) : nil
     attributes[:number] = raw['number'] || raw[:number]
 
     if raw['boundaries'].present? || raw[:boundaries].present?
@@ -94,7 +101,7 @@ class Api::V1::TerritoriesController < ApplicationController
         coords_arr = geojson['coordinates'] || geojson[:coordinates]
         ring = coords_arr[0]
         coords = ring.map { |coord| "#{coord[0]} #{coord[1]}" }.join(', ')
-        attributes[:boundaries] = "POLYGON((#{coords}))"
+        attributes[:boundaries] = "SRID=4326;POLYGON((#{coords}))"
       end
     end
 
@@ -105,7 +112,7 @@ class Api::V1::TerritoriesController < ApplicationController
       lng = center['lng'] || center[:lng]
       lat = center['lat'] || center[:lat]
       if lng.present? && lat.present?
-        attributes[:center] = "POINT(#{lng} #{lat})"
+        attributes[:center] = "SRID=4326;POINT(#{lng} #{lat})"
       end
     end
 
