@@ -20,16 +20,27 @@ export default class extends Controller {
   
   async load(congregationId = null) {
     try {
-      const id = congregationId || this.congregationIdValue
-      const endpoint = id ? `/territories?congregation_id=${id}` : '/territories'
+      const id = congregationId || this.congregationIdValue || window.currentCongregationId
+      this.congregationIdValue = id ? String(id) : ""
+
+      if (!this.congregationIdValue) {
+        this.territories = []
+        window.__territoriesPrintCache = {
+          congregationId: "",
+          features: []
+        }
+        this.render()
+        this.renderOnMap([])
+        return
+      }
+
+      const endpoint = `/territories?congregation_id=${encodeURIComponent(this.congregationIdValue)}`
       const data = await apiClient.get(endpoint)
       
       this.territories = data
-      if (id) {
-        window.__territoriesPrintCache = {
-          congregationId: String(id),
-          features: Array.isArray(data) ? data.slice() : []
-        }
+      window.__territoriesPrintCache = {
+        congregationId: this.congregationIdValue,
+        features: Array.isArray(data) ? data.slice() : []
       }
       this.render()
       this.renderOnMap(data)
@@ -273,7 +284,7 @@ export default class extends Controller {
   
   // Public method to reload territories
   reload() {
-    this.load(this.congregationIdValue)
+    this.load(this.congregationIdValue || window.currentCongregationId)
   }
   
   // Update congregation ID and reload

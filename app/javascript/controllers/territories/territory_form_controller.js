@@ -203,8 +203,9 @@ export default class extends Controller {
     }
     
     try {
-      const response = await apiClient.get(`/congregations/${window.currentCongregationId}/territories`)
-      const territories = response || []
+      const territories = await apiClient.get(
+        `/territories?congregation_id=${encodeURIComponent(window.currentCongregationId)}`
+      )
       
       // Find max number
       let maxNumber = 0

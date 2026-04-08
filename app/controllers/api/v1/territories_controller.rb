@@ -15,7 +15,7 @@ class Api::V1::TerritoriesController < ApplicationController
   def create
     attrs = territory_params
     congregation = Congregation.find_by(id: attrs[:congregation_id])
-    unless congregation && (current_user.super_admin? || current_user.admin_of?(congregation))
+    unless congregation && (current_user.super_admin? || current_user.member_of?(congregation))
       render json: { errors: ['No autorizado para crear territorios en esta congregación'] }, status: :forbidden
       return
     end
@@ -73,10 +73,8 @@ class Api::V1::TerritoriesController < ApplicationController
   def scoped_territories
     if current_user.super_admin?
       Territory.all
-    elsif current_user.congregation_memberships.admin.exists?
-      Territory.where(congregation_id: current_user.admin_congregation_ids)
     else
-      current_user.assigned_territories
+      Territory.where(congregation_id: current_user.congregation_ids)
     end
   end
 
