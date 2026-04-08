@@ -2,6 +2,10 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
+  def self.ransackable_attributes(auth_object = nil)
+    super - %w[encrypted_password reset_password_token]
+  end
+
   has_many :congregation_memberships, dependent: :destroy
   has_many :congregations, through: :congregation_memberships
   has_many :assigned_territories, class_name: 'Territory', foreign_key: 'assigned_to_id'

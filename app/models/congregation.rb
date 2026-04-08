@@ -1,4 +1,8 @@
 class Congregation < ApplicationRecord
+  def self.ransackable_attributes(auth_object = nil)
+    super - %w[boundaries center]
+  end
+
   has_many :congregation_memberships, dependent: :destroy
   has_many :members, through: :congregation_memberships, source: :user
   has_many :territories, dependent: :destroy
