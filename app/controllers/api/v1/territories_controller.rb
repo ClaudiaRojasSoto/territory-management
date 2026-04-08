@@ -13,8 +13,15 @@ class Api::V1::TerritoriesController < ApplicationController
   end
 
   def create
-    @territory = Territory.new(territory_params)
-    
+    attrs = territory_params
+    congregation = Congregation.find_by(id: attrs[:congregation_id])
+    unless congregation && (current_user.super_admin? || current_user.admin_of?(congregation))
+      render json: { errors: ['No autorizado para crear territorios en esta congregación'] }, status: :forbidden
+      return
+    end
+
+    @territory = Territory.new(attrs)
+
     if @territory.save
       render json: @territory.to_geojson, status: :created
     else
@@ -70,6 +77,7 @@ class Api::V1::TerritoriesController < ApplicationController
   def territory_params
     raw = params[:territory].present? ? params[:territory] : params
     raw = raw.respond_to?(:to_unsafe_h) ? raw.to_unsafe_h : raw
+
     attributes = {}
     attributes[:name] = raw['name'] || raw[:name]
     attributes[:description] = raw['description'] || raw[:description]
@@ -77,21 +85,30 @@ class Api::V1::TerritoriesController < ApplicationController
     attributes[:assigned_to_id] = raw['assigned_to_id'] || raw[:assigned_to_id]
     attributes[:congregation_id] = raw['congregation_id'] || raw[:congregation_id]
     attributes[:number] = raw['number'] || raw[:number]
-    
+
     if raw['boundaries'].present? || raw[:boundaries].present?
       geojson = raw['boundaries'] || raw[:boundaries]
-      if geojson[:type] == 'Polygon' && geojson[:coordinates].present?
-        coords = geojson[:coordinates][0].map { |coord| "#{coord[0]} #{coord[1]}" }.join(', ')
+      geojson = geojson.to_unsafe_h if geojson.respond_to?(:to_unsafe_h)
+
+      if (geojson['type'] || geojson[:type]) == 'Polygon' && (geojson['coordinates'] || geojson[:coordinates]).present?
+        coords_arr = geojson['coordinates'] || geojson[:coordinates]
+        ring = coords_arr[0]
+        coords = ring.map { |coord| "#{coord[0]} #{coord[1]}" }.join(', ')
         attributes[:boundaries] = "POLYGON((#{coords}))"
       end
     end
-    
+
     if raw['center'].present? || raw[:center].present?
       center = raw['center'] || raw[:center]
-      if center[:lng].present? && center[:lat].present?
-        attributes[:center] = "POINT(#{center[:lng]} #{center[:lat]})"
+      center = center.to_unsafe_h if center.respond_to?(:to_unsafe_h)
+
+      lng = center['lng'] || center[:lng]
+      lat = center['lat'] || center[:lat]
+      if lng.present? && lat.present?
+        attributes[:center] = "POINT(#{lng} #{lat})"
       end
     end
+
     ActionController::Parameters.new(attributes).permit(:name, :description, :status, :assigned_to_id, :boundaries, :center, :congregation_id, :number)
   end
 
