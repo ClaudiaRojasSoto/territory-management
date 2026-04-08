@@ -328,6 +328,7 @@ DEPENDENCIES
   activeadmin
   activerecord-postgis-adapter
   bootsnap
+  cgi (>= 0.3.3)
   debug
   devise
   error_highlight (>= 0.4.0)

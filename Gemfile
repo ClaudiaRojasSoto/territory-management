@@ -2,6 +2,10 @@ source "https://rubygems.org"
 
 ruby "3.1.2"
 
+# Ruby 3.1 ships default cgi 0.3.1; erb 4.x needs cgi >= 0.3.3. Linux/Render hits
+# Gem::ConflictError during bundle install stubs without this explicit gem.
+gem "cgi", ">= 0.3.3"
+
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 7.1.5", ">= 7.1.5.1"
 
