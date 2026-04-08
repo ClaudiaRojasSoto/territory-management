@@ -87,6 +87,7 @@ export default class extends Controller {
     const name = this.nameInputTarget.value.trim()
     const description = this.descriptionInputTarget.value.trim()
     const numberValue = this.numberInputTarget.value
+    const congregationId = String(window.currentCongregationId || '')
     
     // Validation
     if (this.drawnItems.getLayers().length === 0) {
@@ -148,7 +149,7 @@ export default class extends Controller {
         this.clearForm()
         
         // Reload territories using Stimulus
-        this.reloadTerritories()
+        this.reloadTerritories(congregationId)
       }
     } catch (error) {
       console.error('Error creating territory:', error)
@@ -315,6 +316,8 @@ export default class extends Controller {
       alert('Selecciona una congregación primero')
       return
     }
+
+    const congregationId = String(window.currentCongregationId || '')
     
     // Get next suggested number
     const nextNumber = await this.suggestNextNumber()
@@ -374,7 +377,7 @@ export default class extends Controller {
         this.cancelDrawing()
         
         // Reload territories using Stimulus
-        this.reloadTerritories()
+        this.reloadTerritories(congregationId)
       }
     } catch (error) {
       console.error('Error creating territory:', error)
@@ -417,12 +420,14 @@ export default class extends Controller {
     }
   }
   
-  reloadTerritories() {
+  reloadTerritories(congregationId = window.currentCongregationId) {
     // Find territory-list controller and reload
     const listElement = document.querySelector('[data-controller~="territories--territory-list"]')
     if (listElement) {
       const listController = this.application.getControllerForElementAndIdentifier(listElement, 'territories--territory-list')
-      if (listController && typeof listController.reload === 'function') {
+      if (listController && typeof listController.load === 'function') {
+        listController.load(congregationId ? String(congregationId) : null)
+      } else if (listController && typeof listController.reload === 'function') {
         listController.reload()
       }
     }

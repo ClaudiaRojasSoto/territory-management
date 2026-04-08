@@ -8,8 +8,10 @@ export class ApiClient {
   
   // GET request
   async get(endpoint, options = {}) {
+    const normalizedEndpoint = this.normalizeGetEndpoint(endpoint)
+
     try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      const response = await fetch(`${this.baseUrl}${normalizedEndpoint}`, {
         method: 'GET',
         credentials: 'same-origin',
         headers: {
@@ -26,7 +28,7 @@ export class ApiClient {
       
       return await response.json()
     } catch (error) {
-      console.error(`Error fetching ${endpoint}:`, error)
+      console.error(`Error fetching ${normalizedEndpoint}:`, error)
       throw error
     }
   }
@@ -159,6 +161,18 @@ export class ApiClient {
   getCsrfToken() {
     const token = document.querySelector('meta[name="csrf-token"]')
     return token ? token.content : ''
+  }
+
+  normalizeGetEndpoint(endpoint) {
+    if (typeof endpoint !== 'string') return endpoint
+    if (!/^\/territories(?:\?|$)/.test(endpoint)) return endpoint
+    if (endpoint.includes('congregation_id=')) return endpoint
+
+    const congregationId = window.currentCongregationId
+    if (!congregationId) return endpoint
+
+    const separator = endpoint.includes('?') ? '&' : '?'
+    return `${endpoint}${separator}congregation_id=${encodeURIComponent(congregationId)}`
   }
 }
 
