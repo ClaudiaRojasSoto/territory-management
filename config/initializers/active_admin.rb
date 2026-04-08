@@ -122,11 +122,9 @@ ActiveAdmin.setup do |config|
   # Default:
   config.logout_link_path = :destroy_user_session_path
 
-  # This setting changes the http method used when rendering the
-  # link. For example :get, :delete, :put, etc..
-  #
-  # Default:
-  # config.logout_link_method = :get
+  # Must match Devise (config.sign_out_via = :delete). Default ActiveAdmin is :get, which does not
+  # match the DELETE-only route and breaks logout (404/500 depending on error handling).
+  config.logout_link_method = :delete
 
   # == Root
   #
